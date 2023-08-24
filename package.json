@@ -1,0 +1,21 @@
+{
+  "name": "syncotrope",
+  "version": "0.1.0",
+  "description": "Convert images to video of a given resolution",
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nickhobbs94/syncotrope.git"
+  },
+  "author": "Nicholas Hobbs, Alex Hobbs",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/nickhobbs94/syncotrope/issues"
+  },
+  "homepage": "https://github.com/nickhobbs94/syncotrope#readme",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}
