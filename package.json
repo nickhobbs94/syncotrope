@@ -2,10 +2,11 @@
   "name": "syncotrope",
   "version": "0.1.0",
   "description": "Convert images to video of a given resolution",
+  "type": "module",
   "scripts": {
     "test": "tsc && node --test",
     "build": "tsc",
-    "start": "node dist/main.js",
+    "start": "tsc && node dist/main.js",
     "lint": "eslint src",
     "format": "prettier --write src"
   },
@@ -27,5 +28,8 @@
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.2",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "jimp": "^0.22.10"
   }
 }

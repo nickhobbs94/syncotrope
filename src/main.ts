@@ -1,13 +1,9 @@
-type Options = {
-  width: number;
-  height: number;
-};
+import Jimp from 'jimp';
 
-function setDefaults(given: Partial<Options>) {
-  return {
-    width: given.width ?? 1920,
-    height: given.height ?? 1080,
-  };
-}
+const file = await Jimp.read('https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg');
+const settings = { width: 1920, height: 1080 };
 
-console.log(setDefaults({ width: 1 }));
+const result = file.contain(settings.width, settings.height)
+  .background(0xaaaaaaff)
+  .greyscale()
+  .write('data/output.jpg');
