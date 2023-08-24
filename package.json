@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "Convert images to video of a given resolution",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "build": "tsc",
+    "start": "node dist/main.js"
   },
   "repository": {
     "type": "git",
