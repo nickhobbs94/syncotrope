@@ -3,7 +3,6 @@ type Options = {
   height: number;
 }
 
-
 function setDefaults(given: Partial<Options>) {
   return {
     width: given.width ?? 1920,
@@ -12,4 +11,3 @@ function setDefaults(given: Partial<Options>) {
 }
 
 console.log(setDefaults({width: 1}));
-
