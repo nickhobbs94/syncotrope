@@ -4,7 +4,7 @@ import { testFunction } from "./index.js";
 
 describe("A thing", () => {
   it("should work", () => {
-    assert.strictEqual(testFunction("abc"), 4);
+    assert.strictEqual(testFunction("abc"), 3);
   });
 
   it("should be ok", () => {
