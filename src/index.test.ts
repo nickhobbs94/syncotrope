@@ -1,18 +1,13 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert";
+import { testFunction } from "./index.js";
 
 describe("A thing", () => {
   it("should work", () => {
-    assert.strictEqual(1, 1);
+    assert.strictEqual(testFunction("abc"), 4);
   });
 
   it("should be ok", () => {
     assert.strictEqual(2, 2);
-  });
-
-  describe("a nested thing", () => {
-    it("should work", () => {
-      assert.strictEqual(3, 3);
-    });
   });
 });
