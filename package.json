@@ -2,6 +2,7 @@
   "name": "syncotrope",
   "version": "0.1.0",
   "description": "Convert images to video of a given resolution",
+  "type": "module",
   "scripts": {
     "test": "tsc && node --test",
     "lint": "eslint src",
