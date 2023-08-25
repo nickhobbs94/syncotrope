@@ -27,7 +27,7 @@ export default {
     plugins: [
         new HtmlWebpackPlugin({
             title: 'My TypeScript Frontend',
-            template: './src/index.html'
+            template: './public/index.html'
         })
     ],
     devServer: {
