@@ -1,6 +1,6 @@
 export function test(s: string): number {
-    return s.length;
+  return s.length;
 }
 
-console.log('Hello from TypeScript!');
+console.log("Hello from TypeScript!");
 console.log(test("abc"));
