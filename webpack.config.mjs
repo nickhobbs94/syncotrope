@@ -26,7 +26,7 @@ export default {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'My TypeScript Frontend',
+            title: 'Syncotrope',
             template: './public/index.html'
         })
     ],
