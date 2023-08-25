@@ -22,7 +22,7 @@ export default {
     },
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist')
+        path: path.resolve(__dirname, 'dist/webpack')
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -32,7 +32,7 @@ export default {
     ],
     devServer: {
         static: {
-            directory: path.join(__dirname, 'dist'),
+            directory: path.join(__dirname, 'dist/webpack'),
         },
     }
 };
