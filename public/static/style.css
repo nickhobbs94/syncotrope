@@ -1,0 +1,61 @@
+/* Reset some default browser styles */
+body, h1, p, input {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+input[type="file"] {
+    padding: 10px;
+    border: 2px solid #3498db;
+    border-radius: 6px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-size: 1rem;
+    width: 80%;
+    max-width: 300px;
+    margin: 0 auto 15px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+input[type="file"]:hover {
+    border-color: #27ae60;
+}
+
+#message {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #27ae60;
+    margin-top: 10px;
+}
