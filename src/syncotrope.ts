@@ -143,11 +143,13 @@ export class Syncotrope {
   }
 
   private static leftPad(n: number, len: number): string {
-    const s = '000000' + n.toString();
+    const s = "000000" + n.toString();
     return s.slice(s.length - len);
   }
 
-  public async sequenceToVideo(imageSequence: FileReference[]): Promise<Uint8Array> {
+  public async sequenceToVideo(
+    imageSequence: FileReference[],
+  ): Promise<Uint8Array> {
     console.log(imageSequence);
     let i = 1;
     const date = new Date().getTime().toString();
@@ -155,7 +157,10 @@ export class Syncotrope {
 
     console.log("Before move");
     for (const imageFrame of imageSequence) {
-      await this.copyFile(imageFrame, `${prefix}-${Syncotrope.leftPad(i,4)}.png`);
+      await this.copyFile(
+        imageFrame,
+        `${prefix}-${Syncotrope.leftPad(i, 4)}.png`,
+      );
       i++;
     }
 
@@ -171,7 +176,7 @@ export class Syncotrope {
       "-r",
       this.settings.frameRate.toString(),
       "output.mp4",
-    ])
+    ]);
 
     console.log("After merge");
 
@@ -203,12 +208,15 @@ export class Syncotrope {
   }
 
   // store a file buffer in memory under a given name so ffmpeg can read from it
-  private async putFile(name: string, buffer: Uint8Array): Promise<FileReference> {
+  private async putFile(
+    name: string,
+    buffer: Uint8Array,
+  ): Promise<FileReference> {
     await this.init();
     console.log(`PUTTING ${name}`);
     const ok = await this.ffmpeg.writeFile(name, buffer);
     if (!ok) throw new Error("Could not store file in syncotrope");
-    return {name};
+    return { name };
   }
 
   // retrieve a named file buffer from memory that ffmpeg has written to
@@ -220,7 +228,10 @@ export class Syncotrope {
     return file;
   }
 
-  private async copyFile(source: FileReference, destination: string): Promise<FileReference> {
+  private async copyFile(
+    source: FileReference,
+    destination: string,
+  ): Promise<FileReference> {
     const data = await this.retrieveFile(source);
     return await this.putFile(destination, data);
   }
