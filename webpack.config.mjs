@@ -33,7 +33,8 @@ export default {
         // Add this to copy everything from the 'public' directory
         new CopyPlugin({
             patterns: [
-                { from: './node_modules/@ffmpeg', to: 'assets' }
+                { from: './node_modules/@ffmpeg', to: 'assets' },
+                { from: './public/static' },
             ]
         })
     ],
