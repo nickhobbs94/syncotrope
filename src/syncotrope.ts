@@ -61,7 +61,7 @@ export class Syncotrope {
       "-i",
       foregroundImage.name,
       "-filter_complex",
-      "[0:v][1:v]overlay=150:0,crop=1920:1080:0:0[outv]",
+      "[0:v][1:v]overlay=(1920/2)-(overlay_w/2):0,crop=1920:1080:0:0[outv]",
       "-map",
       "[outv]",
       "-pix_fmt",
