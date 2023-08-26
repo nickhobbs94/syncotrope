@@ -26,7 +26,7 @@ export class Syncotrope {
       //console.log(message);
     });
     await this.ffmpeg.load({
-      coreURL: "/assets/core/dist/umd/ffmpeg-core.js",
+      coreURL: "../../../core/dist/umd/ffmpeg-core.js",
     });
   }
 
