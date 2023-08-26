@@ -11,9 +11,9 @@ const defaults: SyncotropeSettings = {
   targetHeight: 1080,
   targetWidth: 1920,
   targetBlur: "50:10",
-  zoomRate: 40,
+  zoomRate: 1.001,
   frameRate: 25,
-  imageDurationSeconds: 10,
+  imageDurationSeconds: 3,
 };
 
 export function getSettings(
