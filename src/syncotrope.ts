@@ -1,5 +1,6 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import type * as UtilTypes from "@ffmpeg/util";
+import { SyncotropeSettings, getSettings } from "./settings";
 declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
 export type FileReference = {
@@ -8,7 +9,14 @@ export type FileReference = {
 
 export class Syncotrope {
   private initialized = false;
-  constructor(private ffmpeg: FFmpeg) {}
+  private settings: SyncotropeSettings;
+
+  constructor(
+    private ffmpeg: FFmpeg,
+    settings?: Partial<SyncotropeSettings>,
+  ) {
+    this.settings = getSettings(settings ?? {});
+  }
 
   // always call this before trying to do any work
   public async init() {
@@ -23,6 +31,25 @@ export class Syncotrope {
   }
 
   /* --------------- Useful methods that acutally do stuff --------------- */
+
+  public async standardizeImage(file: FileReference) {
+    const fillHorizontalImage = await this.scaleImage(
+      file,
+      this.settings.targetWidth,
+      -1,
+    );
+
+    const fillVertImage = await this.scaleImage(
+      file,
+      -1,
+      this.settings.targetHeight,
+    );
+
+    const blurredImg = await this.blurImage(fillHorizontalImage);
+    const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
+
+    return overlaidImage;
+  }
 
   // Scale an image to the desired resolution
   public async scaleImage(
@@ -61,7 +88,7 @@ export class Syncotrope {
       "-i",
       foregroundImage.name,
       "-filter_complex",
-      "[0:v][1:v]overlay=(1920/2)-(overlay_w/2):0,crop=1920:1080:0:0[outv]",
+      `[0:v][1:v]overlay=(${this.settings.targetWidth}/2)-(overlay_w/2):0,crop=${this.settings.targetWidth}:${this.settings.targetHeight}:0:0[outv]`,
       "-map",
       "[outv]",
       "-pix_fmt",
@@ -80,7 +107,7 @@ export class Syncotrope {
       "-i",
       file.name,
       "-vf",
-      "boxblur=50:10",
+      `boxblur=${this.settings.targetBlur}`,
       "-c:a",
       "copy",
       outFileName,
