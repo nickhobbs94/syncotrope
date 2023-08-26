@@ -8,8 +8,11 @@ describe("Default settings", () => {
   });
 
   it("can override the height", () => {
-    assert.strictEqual(getSettings({
-      targetHeight: 77,
-    }).targetHeight, 77);
+    assert.strictEqual(
+      getSettings({
+        targetHeight: 77,
+      }).targetHeight,
+      77,
+    );
   });
 });

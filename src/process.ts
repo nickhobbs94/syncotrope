@@ -1,8 +1,8 @@
-import type * as UtilTypes from '@ffmpeg/util';
-import { downloadBuffer } from './util/buffer-download';
-import { Syncotrope } from './syncotrope';
+import type * as UtilTypes from "@ffmpeg/util";
+import { downloadBuffer } from "./util/buffer-download";
+import { Syncotrope } from "./syncotrope";
 
-declare const FFmpegUtil: {fetchFile: typeof UtilTypes.fetchFile};
+declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 declare const FFmpegWASM: any;
 
 const { fetchFile } = FFmpegUtil;
@@ -18,6 +18,6 @@ const processFiles = async (event: any) => {
 
 export function setup() {
   const elm = document.getElementById("uploader");
-  if (!elm) throw new Error('No uploader button');
+  if (!elm) throw new Error("No uploader button");
   elm.addEventListener("change", processFiles);
 }
