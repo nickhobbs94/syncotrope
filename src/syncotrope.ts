@@ -115,7 +115,7 @@ export class Syncotrope {
     return { name: outFileName };
   }
 
-  public async cropImage(file: FileReference): Promise<FileReference> {
+  public async zoomImage(file: FileReference): Promise<FileReference> {
     const outFileName = `output-${new Date().getTime().toString()}.png`;
 
     await this.ffmpeg.exec([

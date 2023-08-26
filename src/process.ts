@@ -10,19 +10,9 @@ const processFiles = async (event: any) => {
   const files = event.target.files;
 
   const file = await syncotrope.loadFile(files[0]);
-  // const scaledImage = await syncotrope.standardizeImage(file);
-  // const result = await syncotrope.retrieveFile(scaledImage);
+  const scaledImage = await syncotrope.standardizeImage(file);
 
-  // for narrow aspect images
-  const fillHorizontalImage = await syncotrope.scaleImage(file, 1920, -1);
-  const fillVertImage = await syncotrope.scaleImage(file, -1, 1080);
-  const blurredImg = await syncotrope.blurImage(fillHorizontalImage)
-  const overlaidImage = await syncotrope.overlayImage(
-    blurredImg,
-    fillVertImage,
-  );
-  const croppedImage = await syncotrope.cropImage(overlaidImage);
-  const result = await syncotrope.retrieveFile(croppedImage);
+  const result = await syncotrope.retrieveFile(scaledImage);
   downloadBuffer(result, "output.png", "image/png");
 };
 
