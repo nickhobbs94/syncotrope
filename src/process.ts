@@ -1,5 +1,3 @@
-import { getEventListeners } from "events";
-
 declare const FFmpegUtil: any;
 declare const FFmpegWASM: any;
 
