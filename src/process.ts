@@ -1,4 +1,5 @@
 import { getEventListeners } from "events";
+import { processImage } from "./image-processing";
 
 declare const FFmpegUtil: any;
 declare const FFmpegWASM: any;
@@ -35,7 +36,7 @@ const transcode = async (arg: any) => {
   // const data = await ffmpeg.readFile("outputBlur.png");
   // console.log(data);
 
-  downloadBuffer(await scaleImage(ffmpeg, file), "output.png", "image/png");
+  downloadBuffer(await processImage(ffmpeg, file), "output.png", "image/png");
 };
 
 async function scaleImage(ffmpeg: any, file: any) {

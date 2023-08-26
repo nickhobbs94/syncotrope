@@ -24,3 +24,31 @@
 //   // function that takes a series of frames and sequences them into one file
 //   // $ ffmpeg -framerate 1 -i happy%d.jpg -c:v libx264 -r 30 output.mp4
   
+
+// const transcode = async () => {
+//     const ffmpeg = ffmpegRef.current;
+//     await ffmpeg.writeFile('input.webm', await fetchFile('https://raw.githubusercontent.com/ffmpegwasm/testdata/master/Big_Buck_Bunny_180_10s.webm'));
+//     await ffmpeg.exec(["-i", "input.png", "-vf", "boxblur=50:10", "-c:a", "copy", "outputBlur.png"]);
+//     const data = await ffmpeg.readFile('output.mp4');
+//     videoRef.current.src =
+//         URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+// }
+
+
+export async function processImage(ffmpeg: any, file: any) {
+    scaledImg = await scaleImage(ffmpeg, file)
+    blurredImg = await scaleImage(ffmpeg, scaledImg)
+    return await blurredImg;
+}
+
+async function scaleImage(ffmpeg: any, file: any) {
+    await ffmpeg.writeFile("inputfile", file);
+    await ffmpeg.exec(["-i", "inputfile", "-vf", "scale=1920:-1", "-c:a", "copy", "output.png"]);
+    return await ffmpeg.readFile("output.png");
+}
+
+async function blurImage(ffmpeg: any, file: any) {
+    await ffmpeg.writeFile("inputfile", file);
+    await ffmpeg.exec(["-i", "inputfile", "-vf", "boxblur=50:10", "-c:a", "copy", "output.png"]);
+    return await ffmpeg.readFile("output.png");
+}
