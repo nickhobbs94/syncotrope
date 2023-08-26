@@ -1,4 +1,4 @@
-import { setup } from "./transcode";
+import { setup } from "./process";
 
 // function that takes an image and fixes the aspect ratio
 // export function aspectFixer(image, desiredHeight: number, desiredWidth: number) {
