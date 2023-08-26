@@ -115,6 +115,21 @@ export class Syncotrope {
     return { name: outFileName };
   }
 
+  public async cropImage(file: FileReference): Promise<FileReference> {
+    const outFileName = `output-${new Date().getTime().toString()}.png`;
+
+    await this.ffmpeg.exec([
+      "-i",
+      file.name,
+      "-filter_complex",
+      "zoompan=z=zoom+0.1:x=iw/2-(iw/zoom/2):y=ih/2-(ih/zoom/2):d=100, scale=1920:1080",
+      "-pix_fmt yuv420p -c:a",
+      "copy",
+      outFileName,
+    ]);
+    return { name: outFileName };
+  }
+
   /* --------------- Helper methods --------------- */
 
   public async loadFile(fileInfo: any): Promise<FileReference> {
