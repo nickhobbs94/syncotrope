@@ -47,9 +47,15 @@ export class Syncotrope {
 
     const blurredImg = await this.blurImage(fillHorizontalImage);
     const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
-    const zoomedImage = await this.zoomImage(overlaidImage);
+  
+    let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
+  
+    for (let i = 0; i < 25; i++) {
+      const zoomedImage = await this.zoomImage(imageSequence[i]); // Run zoomImage on the last image in the sequence
+      imageSequence.push(zoomedImage); // Append the zoomed image to the sequence
+    }
 
-    return zoomedImage;
+    return imageSequence;
   }
 
   // Scale an image to the desired resolution
@@ -133,6 +139,32 @@ export class Syncotrope {
     return { name: outFileName };
   }
 
+  public async sequenceToVideo(imageSequence: any): Promise<any> {
+    const videoFrames: Uint8Array[] = [];
+  
+    for (const imageFrame of imageSequence) {
+      const imageData = await this.retrieveFile(imageFrame);
+      videoFrames.push(imageData);
+    }
+  
+    const videoBuffer = this.concatUint8Arrays(videoFrames);
+    return videoBuffer;
+  }
+  
+  private concatUint8Arrays(arrays: Uint8Array[]): Uint8Array {
+    const totalLength = arrays.reduce((total, arr) => total + arr.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+  
+    for (const arr of arrays) {
+      result.set(arr, offset);
+      offset += arr.length;
+    }
+  
+    return result;
+  }
+  
+
   /* --------------- Helper methods --------------- */
 
   public async loadFile(fileInfo: any): Promise<FileReference> {
@@ -145,6 +177,15 @@ export class Syncotrope {
 
   public async retrieveFile(file: FileReference): Promise<Uint8Array> {
     return this.getFile(file.name);
+  }
+
+  public async retrieveSequence(imageSequence: any): Promise<any> {
+    let sequenceData = [];
+    for (const image of imageSequence) {
+      const imageData = await this.retrieveFile(image);
+      sequenceData.push(imageData);
+    }
+    return sequenceData;
   }
 
   // store a file buffer in memory under a given name so ffmpeg can read from it

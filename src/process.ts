@@ -10,10 +10,11 @@ const processFiles = async (event: any) => {
   const files = event.target.files;
 
   const file = await syncotrope.loadFile(files[0]);
-  const scaledImage = await syncotrope.standardizeImage(file);
+  const imageSequence = await syncotrope.standardizeImage(file);
+  const retrievedSequence = await syncotrope.retrieveSequence(imageSequence);
+  const videoFileData = await syncotrope.sequenceToVideo(retrievedSequence);
+  downloadBuffer(videoFileData, "output.mp4", "video/mp4");
 
-  const result = await syncotrope.retrieveFile(scaledImage);
-  downloadBuffer(result, "output.png", "image/png");
 };
 
 export function setup() {
