@@ -25,6 +25,7 @@
     "@types/node": "^20.5.4",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
+    "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.47.0",
     "eslint-config-prettier": "^9.0.0",
     "html-webpack-plugin": "^5.5.3",
@@ -36,6 +37,9 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@ffmpeg/core": "^0.12.2",
+    "@ffmpeg/ffmpeg": "^0.12.5",
+    "@ffmpeg/util": "^0.12.0",
     "jimp": "^0.22.10"
   }
 }
