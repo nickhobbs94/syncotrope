@@ -47,12 +47,13 @@ export class Syncotrope {
 
     const blurredImg = await this.blurImage(fillHorizontalImage);
     const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
-  
+
     let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
-  
-    for (let i = 0; i < 25; i++) {
-      const zoomedImage = await this.zoomImage(imageSequence[i]); // Run zoomImage on the last image in the sequence
-      imageSequence.push(zoomedImage); // Append the zoomed image to the sequence
+
+    let lastImage = overlaidImage;
+    for (let i = 0; i < 100; i++) {
+      lastImage = await this.zoomImage(lastImage);
+      imageSequence.push(lastImage);
     }
 
     return imageSequence;
@@ -129,41 +130,50 @@ export class Syncotrope {
       "-i",
       file.name,
       "-vf",
-      `zoompan=z='zoom+0.1':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=100,scale=1920:1080`,
+      `zoompan=z='min(zoom+0.015,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=100,scale=1920:1080`,
       "-pix_fmt",
       "yuv420p",
       "-c:a",
       "copy",
       outFileName,
     ]);
-    return { name: outFileName };
+
+    // await this.copyFile(file, outFileName);
+
+    const outfile = { name: outFileName };
+
+    return outfile;
   }
 
-  public async sequenceToVideo(imageSequence: any): Promise<any> {
-    const videoFrames: Uint8Array[] = [];
-  
+  private static leftPad(n: number, len: number): string {
+    const s = '000000' + n.toString();
+    return s.slice(s.length - len);
+  }
+
+  public async sequenceToVideo(imageSequence: FileReference[]): Promise<Uint8Array> {
+    let i = 1;
+    const date = new Date().getTime().toString();
+    const prefix = `sequence-${date}`;
+
     for (const imageFrame of imageSequence) {
-      const imageData = await this.retrieveFile(imageFrame);
-      videoFrames.push(imageData);
+      await this.copyFile(imageFrame, `${prefix}-${Syncotrope.leftPad(i,4)}.png`);
     }
-  
-    const videoBuffer = this.concatUint8Arrays(videoFrames);
+
+    await this.ffmpeg.exec([
+      "-framerate",
+      "1",
+      "-i",
+      `${prefix}-%04d.png`,
+      "-c:v",
+      `libx264`,
+      "-r",
+      this.settings.frameRate.toString(),
+      "output.mp4",
+    ])
+
+    const videoBuffer = await this.getFile("output.mp4");
     return videoBuffer;
   }
-  
-  private concatUint8Arrays(arrays: Uint8Array[]): Uint8Array {
-    const totalLength = arrays.reduce((total, arr) => total + arr.length, 0);
-    const result = new Uint8Array(totalLength);
-    let offset = 0;
-  
-    for (const arr of arrays) {
-      result.set(arr, offset);
-      offset += arr.length;
-    }
-  
-    return result;
-  }
-  
 
   /* --------------- Helper methods --------------- */
 
@@ -189,11 +199,12 @@ export class Syncotrope {
   }
 
   // store a file buffer in memory under a given name so ffmpeg can read from it
-  private async putFile(name: string, buffer: Uint8Array) {
+  private async putFile(name: string, buffer: Uint8Array): Promise<FileReference> {
     await this.init();
     console.log(`PUTTING ${name}`);
     const ok = await this.ffmpeg.writeFile(name, buffer);
     if (!ok) throw new Error("Could not store file in syncotrope");
+    return {name};
   }
 
   // retrieve a named file buffer from memory that ffmpeg has written to
@@ -203,5 +214,10 @@ export class Syncotrope {
     if (typeof file !== "object")
       throw new Error("Could not get file from syncotrope");
     return file;
+  }
+
+  private async copyFile(source: FileReference, destination: string): Promise<FileReference> {
+    const data = await this.retrieveFile(source);
+    return await this.putFile(destination, data);
   }
 }
