@@ -1,5 +1,6 @@
 import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,12 @@ export default {
         new HtmlWebpackPlugin({
             title: 'Syncotrope',
             template: './public/index.html'
+        }),
+        // Add this to copy everything from the 'public' directory
+        new CopyPlugin({
+            patterns: [
+                { from: './node_modules/@ffmpeg', to: 'assets' }
+            ]
         })
     ],
     devServer: {
