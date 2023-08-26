@@ -23,7 +23,7 @@ export class Syncotrope {
     if (this.initialized) return;
     this.initialized = true;
     this.ffmpeg.on("log", ({ message }: any) => {
-      console.log(message);
+      //console.log(message);
     });
     await this.ffmpeg.load({
       coreURL: "/assets/core/dist/umd/ffmpeg-core.js",
@@ -51,8 +51,9 @@ export class Syncotrope {
     let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
 
     let lastImage = overlaidImage;
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 25; i++) {
       lastImage = await this.zoomImage(lastImage);
+      console.log(i);
       imageSequence.push(lastImage);
     }
 
@@ -147,17 +148,22 @@ export class Syncotrope {
   }
 
   public async sequenceToVideo(imageSequence: FileReference[]): Promise<Uint8Array> {
+    console.log(imageSequence);
     let i = 1;
     const date = new Date().getTime().toString();
     const prefix = `sequence-${date}`;
 
+    console.log("Before move");
     for (const imageFrame of imageSequence) {
       await this.copyFile(imageFrame, `${prefix}-${Syncotrope.leftPad(i,4)}.png`);
+      i++;
     }
+
+    console.log("After move");
 
     await this.ffmpeg.exec([
       "-framerate",
-      "1",
+      "25",
       "-i",
       `${prefix}-%04d.png`,
       "-c:v",
@@ -166,6 +172,8 @@ export class Syncotrope {
       this.settings.frameRate.toString(),
       "output.mp4",
     ])
+
+    console.log("After merge");
 
     const videoBuffer = await this.getFile("output.mp4");
     return videoBuffer;
