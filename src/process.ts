@@ -14,9 +14,9 @@ const processFiles = async (event: any) => {
   // for narrow aspect images
   const fillHorizontalImage = await syncotrope.scaleImage(file, 1920, -1);
   const fillVertImage = await syncotrope.scaleImage(file, -1, 1080);
-  // const blurredImg = await blurImage(ffmpeg, file)
+  const blurredImg = await syncotrope.blurImage(file)
   const overlaidImage = await syncotrope.overlayImage(
-    fillHorizontalImage,
+    blurredImg,
     fillVertImage,
   );
 
