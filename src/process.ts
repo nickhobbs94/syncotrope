@@ -1,19 +1,27 @@
-import type * as UtilTypes from "@ffmpeg/util";
 import { downloadBuffer } from "./util/buffer-download";
 import { Syncotrope } from "./syncotrope";
 
-declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 declare const FFmpegWASM: any;
 
-const { fetchFile } = FFmpegUtil;
 const { FFmpeg } = FFmpegWASM;
 const syncotrope = new Syncotrope(new FFmpeg());
 
 const processFiles = async (event: any) => {
   const files = event.target.files;
-  const file = await fetchFile(files[0]);
 
-  downloadBuffer(await syncotrope.scaleImage(file), "output.png", "image/png");
+  const file = await syncotrope.loadFile(files[0]);
+
+  // for narrow aspect images
+  const fillHorizontalImage = await syncotrope.scaleImage(file, 1920, -1);
+  const fillVertImage = await syncotrope.scaleImage(file, -1, 1080);
+  // const blurredImg = await blurImage(ffmpeg, file)
+  const overlaidImage = await syncotrope.overlayImage(
+    fillHorizontalImage,
+    fillVertImage,
+  );
+
+  const result = await syncotrope.retrieveFile(overlaidImage);
+  downloadBuffer(result, "output.png", "image/png");
 };
 
 export function setup() {
