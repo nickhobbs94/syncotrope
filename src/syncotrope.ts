@@ -43,7 +43,7 @@ export class Syncotrope {
     let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
 
     let lastImage = overlaidImage;
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < (this.settings.frameRate * this.settings.imageDurationSeconds); i++) {
       lastImage = await this.zoomImage(lastImage);
       setProgress((i / 25) * 100 + 0.1);
       imageSequence.push(lastImage);
@@ -121,7 +121,7 @@ export class Syncotrope {
       "-i",
       file.name,
       "-vf",
-      `zoompan=z='min(zoom+0.015,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=100,scale=1920:1080`,
+      "zoompan=z=1.001",
       "-c:a",
       "copy",
       outFileName,
