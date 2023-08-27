@@ -9,9 +9,11 @@ const syncotrope = new Syncotrope(new FFmpeg());
 const processFiles = async (event: any) => {
   const files = event.target.files;
 
-  const file = await syncotrope.loadFile(files[0]);
-  const imageSequence = await syncotrope.standardizeImage(file);
+  const originalImage = await syncotrope.fs.loadFile(files[0]);
+  const overlaidImage = await syncotrope.standardizeImage(originalImage);
+  const imageSequence = await syncotrope.imageToZoomSequence(overlaidImage);
   const videoFileData = await syncotrope.sequenceToVideo(imageSequence);
+
   downloadBuffer(videoFileData, "output.mp4", "video/mp4");
 };
 

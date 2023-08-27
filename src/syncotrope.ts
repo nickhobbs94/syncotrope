@@ -2,38 +2,22 @@ import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import type * as UtilTypes from "@ffmpeg/util";
 import { SyncotropeSettings, getSettings } from "./settings";
 import { setProgress } from "./ui/progress-bar";
+import { FileReference, FileSystemHandler } from "./file-system";
 declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
-export type FileReference = {
-  name: string;
-};
-
 export class Syncotrope {
-  private initialized = false;
   private settings: SyncotropeSettings;
+  public fs: FileSystemHandler;
 
   constructor(
     private ffmpeg: FFmpeg,
     settings?: Partial<SyncotropeSettings>,
   ) {
     this.settings = getSettings(settings ?? {});
+    this.fs = new FileSystemHandler(this.ffmpeg, this.settings);
   }
 
-  // always call this before trying to do any work
-  public async init() {
-    if (this.initialized) return;
-    this.initialized = true;
-    this.ffmpeg.on("log", ({ message }: any) => {
-      //console.log(message);
-    });
-    await this.ffmpeg.load({
-      coreURL: "../../../core/dist/umd/ffmpeg-core.js",
-    });
-  }
-
-  /* --------------- Useful methods that acutally do stuff --------------- */
-
-  public async standardizeImage(file: FileReference) {
+  public async standardizeImage(file: FileReference): Promise<FileReference> {
     setProgress(0.1);
     const fillHorizontalImage = await this.scaleImage(
       file,
@@ -50,12 +34,17 @@ export class Syncotrope {
     const blurredImg = await this.blurImage(fillHorizontalImage);
     const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
 
+    return overlaidImage;
+  }
+
+  public async imageToZoomSequence(
+    overlaidImage: FileReference,
+  ): Promise<FileReference[]> {
     let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
 
     let lastImage = overlaidImage;
     for (let i = 0; i < 25; i++) {
       lastImage = await this.zoomImage(lastImage);
-      console.log(i);
       setProgress((i / 25) * 100 + 0.1);
       imageSequence.push(lastImage);
     }
@@ -138,8 +127,6 @@ export class Syncotrope {
       outFileName,
     ]);
 
-    // await this.copyFile(file, outFileName);
-
     const outfile = { name: outFileName };
 
     return outfile;
@@ -153,21 +140,17 @@ export class Syncotrope {
   public async sequenceToVideo(
     imageSequence: FileReference[],
   ): Promise<Uint8Array> {
-    console.log(imageSequence);
     let i = 1;
     const date = new Date().getTime().toString();
     const prefix = `sequence-${date}`;
 
-    console.log("Before move");
     for (const imageFrame of imageSequence) {
-      await this.copyFile(
+      await this.fs.copyFile(
         imageFrame,
         `${prefix}-${Syncotrope.leftPad(i, 4)}.png`,
       );
       i++;
     }
-
-    console.log("After move");
 
     await this.ffmpeg.exec([
       "-framerate",
@@ -181,62 +164,8 @@ export class Syncotrope {
       "output.mp4",
     ]);
 
-    console.log("After merge");
-
-    const videoBuffer = await this.getFile("output.mp4");
+    const videoBuffer = await this.fs.getFile("output.mp4");
     setProgress(100);
     return videoBuffer;
-  }
-
-  /* --------------- Helper methods --------------- */
-
-  public async loadFile(fileInfo: any): Promise<FileReference> {
-    const { fetchFile } = FFmpegUtil;
-    const fileBuffer: Uint8Array = await fetchFile(fileInfo);
-    const name: string = fileInfo.name;
-    await this.putFile(name, fileBuffer);
-    return { name };
-  }
-
-  public async retrieveFile(file: FileReference): Promise<Uint8Array> {
-    return this.getFile(file.name);
-  }
-
-  public async retrieveSequence(imageSequence: any): Promise<any> {
-    let sequenceData = [];
-    for (const image of imageSequence) {
-      const imageData = await this.retrieveFile(image);
-      sequenceData.push(imageData);
-    }
-    return sequenceData;
-  }
-
-  // store a file buffer in memory under a given name so ffmpeg can read from it
-  private async putFile(
-    name: string,
-    buffer: Uint8Array,
-  ): Promise<FileReference> {
-    await this.init();
-    console.log(`PUTTING ${name}`);
-    const ok = await this.ffmpeg.writeFile(name, buffer);
-    if (!ok) throw new Error("Could not store file in syncotrope");
-    return { name };
-  }
-
-  // retrieve a named file buffer from memory that ffmpeg has written to
-  private async getFile(name: string): Promise<Uint8Array> {
-    await this.init();
-    const file = await this.ffmpeg.readFile(name);
-    if (typeof file !== "object")
-      throw new Error("Could not get file from syncotrope");
-    return file;
-  }
-
-  private async copyFile(
-    source: FileReference,
-    destination: string,
-  ): Promise<FileReference> {
-    const data = await this.retrieveFile(source);
-    return await this.putFile(destination, data);
   }
 }

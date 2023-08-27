@@ -8,7 +8,7 @@ export type SyncotropeSettings = {
   logging: LoggingFlags[];
 };
 
-type LoggingFlags = 'ffmpeg' | 'file-transfer' | 'debug';
+type LoggingFlags = "ffmpeg" | "file-transfer" | "debug";
 
 const defaults: SyncotropeSettings = {
   targetHeight: 1080,
