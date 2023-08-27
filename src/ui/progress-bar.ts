@@ -1,5 +1,4 @@
 export function setProgress(percentage: number) {
-  console.log("PROGRESS " + percentage);
   if (percentage <= 0) {
     hide();
     return;
