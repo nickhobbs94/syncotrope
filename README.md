@@ -1,5 +1,7 @@
 # syncotrope
 
+Images to video.
+
 ## Prerequisites
 - Install [NVM](https://github.com/nvm-sh/nvm)
 - Install node version 20 with `nvm install 20`

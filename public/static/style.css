@@ -59,3 +59,48 @@ input[type="file"]:hover {
     color: #27ae60;
     margin-top: 10px;
 }
+
+#footer {
+    position: fixed;
+    bottom: 10px; /* Position it 10 pixels from the bottom of the screen */
+    left: 50%;
+    transform: translateX(-50%); /* This will center the footer */
+}
+
+#footer a {
+    font-size: 0.9rem; /* Smaller font size for the link */
+    color: #bbb; /* Lighter color for better contrast against black */
+    transition: color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+#footer a:hover {
+    color: #fff; /* Change color on hover for a slight effect */
+    text-decoration: underline; /* Add underline on hover */
+}
+
+progress {
+    width: 40%;
+    height: 20px;
+    display: none;
+    margin: 20px auto;
+    background-color: #333;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #333;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset;
+}
+
+progress::-webkit-progress-value {
+    background-color: #3498db;
+    border-radius: 5px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #3498db;
+    border-radius: 5px;
+}
