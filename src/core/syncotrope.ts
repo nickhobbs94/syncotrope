@@ -1,7 +1,7 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import type * as UtilTypes from "@ffmpeg/util";
-import { SyncotropeSettings, getSettings } from "./settings";
-import { setProgress } from "./ui/progress-bar";
+import { SyncotropeSettings, getSettings } from "../core/settings";
+import { setProgress } from "../ui/progress-bar";
 import { FileReference, FileSystemHandler } from "./file-system";
 declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
