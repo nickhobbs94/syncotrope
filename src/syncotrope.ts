@@ -1,6 +1,7 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import type * as UtilTypes from "@ffmpeg/util";
 import { SyncotropeSettings, getSettings } from "./settings";
+import { setProgress } from "./ui/progress-bar";
 declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
 export type FileReference = {
@@ -33,6 +34,7 @@ export class Syncotrope {
   /* --------------- Useful methods that acutally do stuff --------------- */
 
   public async standardizeImage(file: FileReference) {
+    setProgress(0.1);
     const fillHorizontalImage = await this.scaleImage(
       file,
       this.settings.targetWidth,
@@ -54,6 +56,7 @@ export class Syncotrope {
     for (let i = 0; i < 25; i++) {
       lastImage = await this.zoomImage(lastImage);
       console.log(i);
+      setProgress((i / 25) * 100 + 0.1);
       imageSequence.push(lastImage);
     }
 
@@ -181,6 +184,7 @@ export class Syncotrope {
     console.log("After merge");
 
     const videoBuffer = await this.getFile("output.mp4");
+    setProgress(100);
     return videoBuffer;
   }
 
