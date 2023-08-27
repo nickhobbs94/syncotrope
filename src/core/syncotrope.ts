@@ -43,7 +43,8 @@ export class Syncotrope {
     let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
 
     let lastImage = overlaidImage;
-    const totalFrames = this.settings.frameRate * this.settings.imageDurationSeconds;
+    const totalFrames =
+      this.settings.frameRate * this.settings.imageDurationSeconds;
     for (let i = 0; i < totalFrames; i++) {
       lastImage = await this.zoomImage(lastImage);
       setProgress((i / totalFrames) * 100 + 0.1);
