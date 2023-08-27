@@ -5,7 +5,10 @@ export type SyncotropeSettings = {
   zoomRate: number;
   frameRate: number;
   imageDurationSeconds: number;
+  logging: LoggingFlags[];
 };
+
+type LoggingFlags = 'ffmpeg' | 'file-transfer' | 'debug';
 
 const defaults: SyncotropeSettings = {
   targetHeight: 1080,
@@ -14,6 +17,7 @@ const defaults: SyncotropeSettings = {
   zoomRate: 40,
   frameRate: 25,
   imageDurationSeconds: 10,
+  logging: [],
 };
 
 export function getSettings(
