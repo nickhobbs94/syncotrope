@@ -21,7 +21,7 @@ export class FileSystemHandler {
     this.initialized = true;
 
     if (this.settings.logging.includes("ffmpeg")) {
-      this.ffmpeg.on("log", ({ message }: any) => {
+      this.ffmpeg.on("log", ({ message }) => {
         console.log(message);
       });
     }
@@ -31,7 +31,7 @@ export class FileSystemHandler {
     });
   }
 
-  public async loadFile(fileInfo: any): Promise<FileReference> {
+  public async loadFile(fileInfo: File): Promise<FileReference> {
     const { fetchFile } = FFmpegUtil;
     const fileBuffer: Uint8Array = await fetchFile(fileInfo);
     const name: string = fileInfo.name;

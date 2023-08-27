@@ -1,9 +1,7 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
-import type * as UtilTypes from "@ffmpeg/util";
 import { SyncotropeSettings, getSettings } from "../core/settings";
 import { setProgress } from "../ui/progress-bar";
 import { FileReference, FileSystemHandler } from "./file-system";
-declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
 export class Syncotrope {
   private settings: SyncotropeSettings;
@@ -40,7 +38,7 @@ export class Syncotrope {
   public async imageToZoomSequence(
     overlaidImage: FileReference,
   ): Promise<FileReference[]> {
-    let imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
+    const imageSequence: FileReference[] = [overlaidImage]; // Start with the overlaid image in the sequence
 
     let lastImage = overlaidImage;
     const totalFrames =

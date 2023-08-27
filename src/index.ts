@@ -1,13 +1,18 @@
 import { downloadBuffer } from "./util/buffer-download";
 import { Syncotrope } from "./core/syncotrope";
+import type { FFmpeg as FFmpegClass } from "@ffmpeg/ffmpeg";
 
-declare const FFmpegWASM: any;
-
+declare const FFmpegWASM: { FFmpeg: typeof FFmpegClass };
 const { FFmpeg } = FFmpegWASM;
+
 const syncotrope = new Syncotrope(new FFmpeg());
 
-const processFiles = async (event: any) => {
-  const files = event.target.files;
+const processFiles = async (event: Event) => {
+  const files = (event.target as HTMLInputElement)?.files;
+
+  if (!files?.length) {
+    throw new Error("Cannt find file uploaded");
+  }
 
   const originalImage = await syncotrope.fs.loadFile(files[0]);
   const overlaidImage = await syncotrope.standardizeImage(originalImage);
