@@ -14,12 +14,14 @@ const processFiles = async (event: Event) => {
     throw new Error("Cannt find file uploaded");
   }
 
-  const originalImage = await syncotrope.fs.loadFile(files[0]);
-  const overlaidImage = await syncotrope.standardizeImage(originalImage);
-  const imageSequence = await syncotrope.imageToZoomSequence(overlaidImage);
-  const videoFileData = await syncotrope.sequenceToVideo(imageSequence);
+  for (const file of files) {
+    const originalImage = await syncotrope.fs.loadFile(file);
+    const overlaidImage = await syncotrope.standardizeImage(originalImage);
+    const imageSequence = await syncotrope.imageToZoomSequence(overlaidImage);
+    const videoFileData = await syncotrope.sequenceToVideo(imageSequence);
 
-  downloadBuffer(videoFileData, "output.mp4", "video/mp4");
+    downloadBuffer(videoFileData, "output.mp4", "video/mp4");
+  }
 };
 
 export function setup() {
