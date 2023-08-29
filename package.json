@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/nickhobbs94/syncotrope/issues"
   },
-  "homepage": "https://github.com/nickhobbs94/syncotrope#readme",
+  "homepage": "https://syncotrope.com",
   "devDependencies": {
     "@types/node": "^20.5.4",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
