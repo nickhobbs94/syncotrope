@@ -1,6 +1,7 @@
 import { downloadBuffer } from "./util/buffer-download";
 import { Syncotrope } from "./core/syncotrope";
 import type { FFmpeg as FFmpegClass } from "@ffmpeg/ffmpeg";
+import { setupSettingsSidebar } from "./ui/settings-sidebar";
 
 declare const FFmpegWASM: { FFmpeg: typeof FFmpegClass };
 const { FFmpeg } = FFmpegWASM;
@@ -28,6 +29,7 @@ export function setup() {
   const elm = document.getElementById("uploader");
   if (!elm) throw new Error("No uploader button");
   elm.addEventListener("change", processFiles);
+  setupSettingsSidebar();
 }
 
 setup();
