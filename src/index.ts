@@ -15,6 +15,8 @@ const processFiles = async (event: Event) => {
     throw new Error("Cannt find file uploaded");
   }
 
+  syncotrope.loadSettings();
+
   for (const file of files) {
     const originalImage = await syncotrope.fs.loadFile(file);
     const overlaidImage = await syncotrope.standardizeImage(originalImage);
@@ -30,6 +32,7 @@ export function setup() {
   if (!elm) throw new Error("No uploader button");
   elm.addEventListener("change", processFiles);
   setupSettingsSidebar();
+  // setDefaultSettingsInUI();
 }
 
 setup();

@@ -7,12 +7,13 @@ export class Syncotrope {
   private settings: SyncotropeSettings;
   public fs: FileSystemHandler;
 
-  constructor(
-    private ffmpeg: FFmpeg,
-    settings?: Partial<SyncotropeSettings>,
-  ) {
-    this.settings = getSettings(settings ?? {});
+  constructor(private ffmpeg: FFmpeg) {
+    this.settings = getSettings();
     this.fs = new FileSystemHandler(this.ffmpeg, this.settings);
+  }
+
+  public loadSettings() {
+    this.settings = getSettings();
   }
 
   public async standardizeImage(file: FileReference): Promise<FileReference> {
