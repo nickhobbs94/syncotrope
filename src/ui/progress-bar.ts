@@ -8,6 +8,17 @@ export function setProgress(percentage: number) {
   progressBar.value = percentage;
 }
 
+export function updateProgressFromFFmpegLog(
+  message: string,
+  settings: { frameRate: number; imageDurationSeconds: number },
+) {
+  const frame = message.match(/^frame=\s*(?<frame>[0-9]*)/)?.groups?.frame;
+  if (frame) {
+    const duration = settings.frameRate * settings.imageDurationSeconds;
+    setProgress((parseFloat(frame) / duration) * 100);
+  }
+}
+
 function show() {
   const progressBar = getProgressBar();
   progressBar.style.display = "block";
