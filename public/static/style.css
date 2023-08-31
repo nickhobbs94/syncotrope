@@ -1,5 +1,8 @@
 /* Reset some default browser styles */
-body, h1, p, input {
+body,
+h1,
+p,
+input {
     margin: 0;
     padding: 0;
     border: none;
@@ -63,20 +66,27 @@ input[type="file"]:hover {
 
 #footer {
     position: fixed;
-    bottom: 10px; /* Position it 10 pixels from the bottom of the screen */
+    bottom: 10px;
+    /* Position it 10 pixels from the bottom of the screen */
     left: 50%;
-    transform: translateX(-50%); /* This will center the footer */
+    transform: translateX(-50%);
+    /* This will center the footer */
 }
 
 #footer a {
-    font-size: 0.9rem; /* Smaller font size for the link */
-    color: #bbb; /* Lighter color for better contrast against black */
-    transition: color 0.3s ease; /* Smooth transition for hover effect */
+    font-size: 0.9rem;
+    /* Smaller font size for the link */
+    color: #bbb;
+    /* Lighter color for better contrast against black */
+    transition: color 0.3s ease;
+    /* Smooth transition for hover effect */
 }
 
 #footer a:hover {
-    color: #fff; /* Change color on hover for a slight effect */
-    text-decoration: underline; /* Add underline on hover */
+    color: #fff;
+    /* Change color on hover for a slight effect */
+    text-decoration: underline;
+    /* Add underline on hover */
 }
 
 progress {
@@ -104,4 +114,114 @@ progress::-webkit-progress-value {
 progress::-moz-progress-bar {
     background-color: #3498db;
     border-radius: 5px;
+}
+
+#settings-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100vh;
+    background-color: #1e1e1e;
+    padding: 20px;
+    box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.2);
+    /* overflow-y: auto; */
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+#settings-sidebar h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+#settings-sidebar label,
+#settings-sidebar select {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#settings-sidebar select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #3498db;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-size: 1rem;
+    border-radius: 6px;
+}
+
+#settings-sidebar select:hover {
+    border-color: #27ae60;
+}
+
+#settings-sidebar.show {
+    transform: translateX(0);
+}
+
+#toggle-settings {
+    position: relative;
+    top: 50%;
+    left: -45px;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 40px;
+    background-color: #1e1e1e;
+    border: none;
+    cursor: pointer;
+    z-index: 2;
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+#toggle-settings::before,
+#toggle-settings::after {
+    content: '';
+    border: solid white;
+    border-width: 2px 2px 0 0;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(225deg);
+    /* rotate to make arrow */
+    transform-origin: center center;
+    position: relative;
+}
+
+#toggle-settings.open::before,
+#toggle-settings.open::after {
+    transform: translateX(-100%);
+    transform: rotate(45deg);
+}
+
+/* #settings-sidebar input[type="number"] {
+    width: 80%;
+    padding: 10px;
+    border: 2px solid #3498db;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-size: 1rem;
+    border-radius: 6px;
+}
+
+#settings-sidebar input[type="number"]:hover {
+    border-color: #27ae60;
+} */
+
+
+
+#settings-sidebar input {
+    border: 2px solid #3498db;
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+#settings-sidebar label,
+#settings-sidebar input {
+    color: #ffffff;
+    font-size: 1rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 15px;
+    margin-right: 10px;
+    vertical-align: middle;
 }
