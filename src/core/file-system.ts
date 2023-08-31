@@ -13,6 +13,7 @@ export class FileSystemHandler {
   constructor(
     private ffmpeg: FFmpeg,
     private settings: SyncotropeSettings,
+    private progressHook: (s: string) => void,
   ) {}
 
   // always call this before trying to do any work
@@ -20,11 +21,12 @@ export class FileSystemHandler {
     if (this.initialized) return;
     this.initialized = true;
 
-    if (this.settings.logging.includes("ffmpeg")) {
-      this.ffmpeg.on("log", ({ message }) => {
+    this.ffmpeg.on("log", ({ message }) => {
+      if (this.settings.logging.includes("ffmpeg")) {
         console.log(message);
-      });
-    }
+      }
+      this.progressHook(message);
+    });
 
     await this.ffmpeg.load({
       coreURL: "../../../core/dist/umd/ffmpeg-core.js",
