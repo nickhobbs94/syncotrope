@@ -40,7 +40,7 @@ export class Syncotrope {
   public async combinedZoomAndVideo(
     image: FileReference,
   ): Promise<FileReference> {
-    const outFileName = `output-${new Date().getTime().toString()}.mp4`;
+    const outFileName = `video-output-${new Date().getTime().toString()}.mp4`;
 
     const XP = 50; // x position in percent
     const YP = 50; // y position in percent
@@ -52,7 +52,7 @@ export class Syncotrope {
 
     console.log("Begin making video");
 
-    await this.ffmpeg.exec([
+    const result = await this.ffmpeg.exec([
       "-i",
       image.name,
       "-vf",
@@ -63,6 +63,10 @@ export class Syncotrope {
       "libx264",
       outFileName,
     ]);
+
+    if (result !== 0) {
+      throw new Error("Error from video making");
+    }
 
     console.log(`Video made, saved under ${outFileName}`);
 
@@ -75,12 +79,12 @@ export class Syncotrope {
     horizontalSize: number,
     verticalSize: number,
   ): Promise<FileReference> {
-    const outFileName = `output-${new Date().getTime().toString()}.png`;
+    const outFileName = `scale-output-${new Date().getTime().toString()}.png`;
 
     const scaleParameter = `scale=${horizontalSize}:${verticalSize}`;
     console.log(`Scaling image with setting: ${scaleParameter}`);
 
-    await this.ffmpeg.exec([
+    const result = await this.ffmpeg.exec([
       "-i",
       file.name,
       "-vf",
@@ -90,6 +94,10 @@ export class Syncotrope {
       outFileName,
     ]);
 
+    if (result !== 0) {
+      throw new Error("Error from scaleImage");
+    }
+
     return { name: outFileName };
   }
 
@@ -98,9 +106,9 @@ export class Syncotrope {
     backgroundImage: FileReference,
     foregroundImage: FileReference,
   ): Promise<FileReference> {
-    const outFileName = `output-${new Date().getTime().toString()}.png`;
+    const outFileName = `overlay-output-${new Date().getTime().toString()}.png`;
 
-    await this.ffmpeg.exec([
+    const result = await this.ffmpeg.exec([
       "-i",
       backgroundImage.name,
       "-i",
@@ -113,13 +121,18 @@ export class Syncotrope {
       "copy",
       outFileName,
     ]);
+
+    if (result !== 0) {
+      throw new Error("Error from overlay");
+    }
+
     return { name: outFileName };
   }
 
   public async blurImage(file: FileReference): Promise<FileReference> {
-    const outFileName = `output-${new Date().getTime().toString()}.png`;
+    const outFileName = `blur-output-${new Date().getTime().toString()}.png`;
 
-    await this.ffmpeg.exec([
+    const result = await this.ffmpeg.exec([
       "-i",
       file.name,
       "-vf",
@@ -128,13 +141,17 @@ export class Syncotrope {
       "copy",
       outFileName,
     ]);
+
+    if (result !== 0) {
+      throw new Error("Error from blur");
+    }
     return { name: outFileName };
   }
 
   public async zoomImage(file: FileReference): Promise<FileReference> {
-    const outFileName = `output-${new Date().getTime().toString()}.png`;
+    const outFileName = `zoom-output-${new Date().getTime().toString()}.png`;
 
-    await this.ffmpeg.exec([
+    const result = await this.ffmpeg.exec([
       "-i",
       file.name,
       "-vf",
@@ -143,6 +160,10 @@ export class Syncotrope {
       "copy",
       outFileName,
     ]);
+
+    if (result !== 0) {
+      throw new Error("Error from zoomImage");
+    }
 
     const outfile = { name: outFileName };
 

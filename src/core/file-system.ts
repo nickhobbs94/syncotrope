@@ -77,6 +77,7 @@ export class FileSystemHandler {
       return file;
     } catch (e) {
       console.log(`Unable to get file: ${name}`);
+      console.log(await this.ffmpeg.listDir("."));
       throw e;
     }
   }
