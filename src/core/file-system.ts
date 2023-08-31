@@ -70,10 +70,16 @@ export class FileSystemHandler {
 
     await this.init();
 
-    const file = await this.ffmpeg.readFile(name);
-    if (typeof file !== "object")
-      throw new Error("Could not get file from syncotrope");
-    return file;
+    try {
+      const file = await this.ffmpeg.readFile(name);
+      if (typeof file !== "object")
+        throw new Error("Could not get file from syncotrope");
+      return file;
+    } catch (e) {
+      console.log(`Unable to get file: ${name}`)
+      throw e;
+    }
+
   }
 
   public async copyFile(
