@@ -35,7 +35,7 @@ jobs:
     - run: npm run code-check
     - run: npm run test
     - run: npm run build
-    - run: git rev-parse HEAD > dist/webpack/version
+    - run: git rev-parse HEAD > dist/webpack/version.txt
     - name: Setup Pages
       uses: actions/configure-pages@v3
     - name: Upload artifact
