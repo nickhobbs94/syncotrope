@@ -35,12 +35,12 @@ jobs:
     - run: npm run code-check
     - run: npm run test
     - run: npm run build
+    - run: git rev-parse HEAD > dist/webpack/version
     - name: Setup Pages
       uses: actions/configure-pages@v3
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v2
       with:
-        # Upload entire repository
         path: 'dist/webpack'
     - name: Deploy to GitHub Pages
       id: deployment

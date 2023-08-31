@@ -64,6 +64,8 @@ export class Syncotrope {
       outFileName,
     ]);
 
+    console.log("Video made");
+
     return { name: outFileName };
   }
 
