@@ -64,7 +64,7 @@ export class Syncotrope {
       outFileName,
     ]);
 
-    console.log("Video made");
+    console.log(`Video made, saved under ${outFileName}`);
 
     return { name: outFileName };
   }
