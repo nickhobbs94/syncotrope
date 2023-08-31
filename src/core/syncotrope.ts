@@ -50,6 +50,8 @@ export class Syncotrope {
 
     const DURATION = FPS * this.settings.imageDurationSeconds;
 
+    console.log("Begin making video");
+
     await this.ffmpeg.exec([
       "-i",
       image.name,
