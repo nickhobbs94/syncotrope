@@ -76,10 +76,9 @@ export class FileSystemHandler {
         throw new Error("Could not get file from syncotrope");
       return file;
     } catch (e) {
-      console.log(`Unable to get file: ${name}`)
+      console.log(`Unable to get file: ${name}`);
       throw e;
     }
-
   }
 
   public async copyFile(
