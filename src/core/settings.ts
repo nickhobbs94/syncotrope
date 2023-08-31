@@ -21,7 +21,7 @@ const defaults: SyncotropeSettings = {
   zoomRate: 1.001,
   frameRate: 25,
   imageDurationSeconds: 3,
-  logging: [],
+  logging: ["ffmpeg" , "file-transfer" , "debug"],
 };
 
 // map settings to an element on the page

@@ -20,10 +20,14 @@ const processFiles = async (event: Event) => {
   for (const file of files) {
     const originalImage = await syncotrope.fs.loadFile(file);
     const overlaidImage = await syncotrope.standardizeImage(originalImage);
-    const imageSequence = await syncotrope.imageToZoomSequence(overlaidImage);
-    const videoFileData = await syncotrope.sequenceToVideo(imageSequence);
+    const videoFileData = await syncotrope.combinedZoomAndVideo(overlaidImage);
+    // const imageSequence = await syncotrope.imageToZoomSequence(overlaidImage);
+    // const videoFileData = await syncotrope.sequenceToVideo(imageSequence);
+    const outfile = await syncotrope.fs.getFile(videoFileData.name);
 
-    downloadBuffer(videoFileData, "output.mp4", "video/mp4");
+    console.log(outfile);
+
+    downloadBuffer(outfile, "output.mp4", "video/mp4");
   }
 };
 

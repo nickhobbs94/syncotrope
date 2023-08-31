@@ -36,6 +36,30 @@ export class Syncotrope {
     return overlaidImage;
   }
 
+  public async combinedZoomAndVideo(image: FileReference): Promise<FileReference> {
+    const outFileName = `output-${new Date().getTime().toString()}.mp4`;
+
+   const XP = 50; // x position in percent
+   const YP = 50; // y position in percent
+   const FPS = this.settings.frameRate;
+   const W = this.settings.targetWidth;
+   const H = this.settings.targetHeight;
+
+   const DURATION = FPS * this.settings.imageDurationSeconds;
+
+    await this.ffmpeg.exec([
+      "-i",
+      image.name,
+      "-vf",
+      `zoompan=z='zoom+${this.settings.zoomRate - 1}':x='iw/2-iw*(1/2-${XP}/100)*on/${DURATION}-iw/zoom/2':y='ih/2-ih*(1/2-${YP}/100)*on/${DURATION}-ih/zoom/2':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      "-c:v",
+      "libx264",
+      outFileName,
+    ]);
+
+    return { name: outFileName };
+  }
+
   public async imageToZoomSequence(
     overlaidImage: FileReference,
   ): Promise<FileReference[]> {
