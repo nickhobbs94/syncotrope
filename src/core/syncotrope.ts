@@ -34,7 +34,17 @@ export class Syncotrope {
     const blurredImg = await this.blurImage(fillHorizontalImage);
     const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
 
-    return overlaidImage;
+    // upscale the final image to avoid jitter
+    const finalZoom =
+      1 +
+      (this.settings.zoomRate - 1) *
+        this.settings.frameRate *
+        this.settings.imageDurationSeconds;
+    return await this.scaleImage(
+      overlaidImage,
+      this.settings.targetWidth * finalZoom,
+      this.settings.targetHeight * finalZoom,
+    );
   }
 
   public async combinedZoomAndVideo(
@@ -42,8 +52,6 @@ export class Syncotrope {
   ): Promise<FileReference> {
     const outFileName = `video-output-${new Date().getTime().toString()}.mp4`;
 
-    const XP = 50; // x position in percent
-    const YP = 50; // y position in percent
     const FPS = this.settings.frameRate;
     const W = this.settings.targetWidth;
     const H = this.settings.targetHeight;
@@ -58,7 +66,7 @@ export class Syncotrope {
       "-vf",
       `zoompan=z='zoom+${
         this.settings.zoomRate - 1
-      }':x='iw/2-iw*(1/2-${XP}/100)*on/${DURATION}-iw/zoom/2':y='ih/2-ih*(1/2-${YP}/100)*on/${DURATION}-ih/zoom/2':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      }':x='(iw/2-iw/zoom/2)':y='(ih/2-ih/zoom/2)':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
       "-c:v",
       "libx264",
       outFileName,
@@ -146,27 +154,5 @@ export class Syncotrope {
       throw new Error("Error from blur");
     }
     return { name: outFileName };
-  }
-
-  public async zoomImage(file: FileReference): Promise<FileReference> {
-    const outFileName = `zoom-output-${new Date().getTime().toString()}.png`;
-
-    const result = await this.ffmpeg.exec([
-      "-i",
-      file.name,
-      "-vf",
-      `zoompan=z=${this.settings.zoomRate}`,
-      "-c:a",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      throw new Error("Error from zoomImage");
-    }
-
-    const outfile = { name: outFileName };
-
-    return outfile;
   }
 }
