@@ -3,6 +3,16 @@ import { SyncotropeSettings, getSettings } from "../core/settings";
 import { updateProgressFromFFmpegLog } from "../ui/progress-bar";
 import { FileReference, FileSystemHandler } from "./file-system";
 
+/*
+We want to refactor the Syncotrope class to be like the interface.
+*/
+
+export interface ISyncotrope {
+  loadSettings(): void;
+
+  processImages(files: Uint8Array[]): Promise<Uint8Array>;
+}
+
 export class Syncotrope {
   private settings: SyncotropeSettings;
   public fs: FileSystemHandler;
