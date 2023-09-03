@@ -36,7 +36,6 @@ export function setup() {
   if (!elm) throw new Error("No uploader button");
   elm.addEventListener("change", processFiles);
   setupSettingsSidebar();
-  // setDefaultSettingsInUI();
 }
 
 setup();
