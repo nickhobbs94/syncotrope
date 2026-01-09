@@ -5,6 +5,7 @@ export function downloadBuffer(
   mimeType: string,
 ) {
   // 1. Convert the buffer to a Blob
+  // @ts-ignore
   const blob = new Blob([buffer], { type: mimeType });
 
   // 2. Create an Object URL

@@ -22,23 +22,23 @@
   },
   "homepage": "https://syncotrope.com",
   "devDependencies": {
-    "@types/node": "^20.5.4",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
-    "copy-webpack-plugin": "^11.0.0",
-    "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.0.0",
-    "html-webpack-plugin": "^5.5.3",
-    "prettier": "^3.0.2",
-    "ts-loader": "^9.4.4",
-    "typescript": "^5.1.6",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "copy-webpack-plugin": "^13.0.1",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "html-webpack-plugin": "^5.6.4",
+    "prettier": "^3.6.2",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@ffmpeg/core": "^0.12.2",
-    "@ffmpeg/ffmpeg": "^0.12.5",
-    "@ffmpeg/util": "^0.12.0"
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2"
   }
 }
