@@ -95,6 +95,27 @@ export function constantJumpSize(inputSize: number, totalFrames: number, finalZo
 }
 
 /**
+ * Calculate the adjusted finalZoom that produces exactly jumpSize * totalFrames offset.
+ * This ensures the zoom and position stay perfectly synchronized.
+ */
+export function adjustedFinalZoom(inputSize: number, jumpSize: number, totalFrames: number): number {
+  const targetOffset = jumpSize * totalFrames;
+  // Solve: inputSize * (zoom - 1) / (2 * zoom) = targetOffset
+  // => zoom = inputSize / (inputSize - 2 * targetOffset)
+  return inputSize / (inputSize - 2 * targetOffset);
+}
+
+/**
+ * Calculate the adjusted zoomRate that matches constant jump motion.
+ * This keeps zoom and position perfectly synchronized.
+ */
+export function adjustedZoomRate(inputSize: number, jumpSize: number, totalFrames: number): number {
+  const finalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+  // zoomRate such that: 1 + (zoomRate - 1) * totalFrames = finalZoom
+  return 1 + (finalZoom - 1) / totalFrames;
+}
+
+/**
  * Calculate offset using constant jump size (perfectly smooth, no variation).
  * Every frame moves by exactly the same number of pixels.
  *

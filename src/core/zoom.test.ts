@@ -9,6 +9,10 @@ import {
   flooredOffsetX,
   flooredOffsetY,
   linearOffsetX,
+  constantJumpSize,
+  adjustedFinalZoom,
+  adjustedZoomRate,
+  finalOffset,
   isNearInteger,
   analyzeZoomForJitter,
   ZoomSettings,
@@ -143,6 +147,61 @@ describe("flooredOffsetX and flooredOffsetY", () => {
       prevOffset = offset;
       prevJump = jump;
     }
+  });
+});
+
+describe("adjustedFinalZoom and adjustedZoomRate", () => {
+  it("produces finalZoom where offset equals jumpSize * totalFrames", () => {
+    const inputSize = 2640;
+    const jumpSize = 5;
+    const totalFrames = 75;
+
+    const adjustedZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+    const actualOffset = finalOffset(inputSize, adjustedZoom);
+    const expectedOffset = jumpSize * totalFrames; // 375
+
+    assert.ok(
+      Math.abs(actualOffset - expectedOffset) < 0.001,
+      `Expected offset ${expectedOffset}, got ${actualOffset}`,
+    );
+  });
+
+  it("adjustedZoomRate produces correct finalZoom after totalFrames", () => {
+    const inputSize = 2640;
+    const jumpSize = 5;
+    const totalFrames = 75;
+
+    const zoomRate = adjustedZoomRate(inputSize, jumpSize, totalFrames);
+    const computedFinalZoom = 1 + (zoomRate - 1) * totalFrames;
+    const expectedFinalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+
+    assert.ok(
+      Math.abs(computedFinalZoom - expectedFinalZoom) < 0.0001,
+      `Expected finalZoom ${expectedFinalZoom}, got ${computedFinalZoom}`,
+    );
+  });
+
+  it("synchronizes zoom and position at final frame", () => {
+    const inputSize = 2640;
+    const totalFrames = 75;
+    const userFinalZoom = 1.375; // Original user setting
+    const jumpSize = constantJumpSize(inputSize, totalFrames, userFinalZoom);
+    const zoomRate = adjustedZoomRate(inputSize, jumpSize, totalFrames);
+
+    // At frame 0, both should be 0
+    const zoomAtStart = 1 + (zoomRate - 1) * 0;
+    assert.strictEqual(centerOffsetX(inputSize, zoomAtStart), 0);
+    assert.strictEqual(jumpSize * 0, 0);
+
+    // At final frame, zoom-based offset should match linear offset
+    const finalZoom = 1 + (zoomRate - 1) * totalFrames;
+    const zoomBasedOffset = centerOffsetX(inputSize, finalZoom);
+    const linearOffset = jumpSize * totalFrames;
+
+    assert.ok(
+      Math.abs(zoomBasedOffset - linearOffset) < 1,
+      `Final frame: zoom offset ${zoomBasedOffset.toFixed(2)} vs linear ${linearOffset}`,
+    );
   });
 });
 

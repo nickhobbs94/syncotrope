@@ -69,26 +69,34 @@ export class Syncotrope {
     const DURATION = FPS * this.settings.imageDurationSeconds;
 
     // Calculate constant jump size per frame (prevents all jitter)
-    // final_zoom = 1 + (zoomRate - 1) * DURATION
-    // final_offset = dimension * (final_zoom - 1) / (2 * final_zoom)
-    // jump_per_frame = round(final_offset / DURATION)
-    const finalZoom = 1 + (this.settings.zoomRate - 1) * DURATION;
-    const finalOffsetX = (W * finalZoom * (finalZoom - 1)) / (2 * finalZoom);
-    const finalOffsetY = (H * finalZoom * (finalZoom - 1)) / (2 * finalZoom);
-    const jumpX = Math.round(finalOffsetX / DURATION);
-    const jumpY = Math.round(finalOffsetY / DURATION);
+    const userFinalZoom = 1 + (this.settings.zoomRate - 1) * DURATION;
+
+    // Calculate jump sizes based on upscaled dimensions
+    // The upscaled image is W * userFinalZoom by H * userFinalZoom
+    const upscaledW = W * userFinalZoom;
+    const upscaledH = H * userFinalZoom;
+
+    // Calculate ideal final offset and round to get constant jump
+    const idealOffsetX = (upscaledW * (userFinalZoom - 1)) / (2 * userFinalZoom);
+    const idealOffsetY = (upscaledH * (userFinalZoom - 1)) / (2 * userFinalZoom);
+    const jumpX = Math.round(idealOffsetX / DURATION);
+    const jumpY = Math.round(idealOffsetY / DURATION);
+
+    // Calculate adjusted zoomRate that produces exactly jumpX * DURATION offset
+    // This keeps zoom and position perfectly synchronized
+    const targetOffsetX = jumpX * DURATION;
+    const adjustedFinalZoom = upscaledW / (upscaledW - 2 * targetOffsetX);
+    const adjustedZoomIncrement = (adjustedFinalZoom - 1) / DURATION;
 
     console.log("Begin making video");
 
-    // Use constant jump size: offset = jumpSize * frame_number
-    // This ensures perfectly smooth motion with no variation
+    // Use adjusted zoom rate with constant jump position
+    // Both zoom and position now stay perfectly in sync
     const result = await this.ffmpeg.exec([
       "-i",
       image.name,
       "-vf",
-      `zoompan=z='zoom+${
-        this.settings.zoomRate - 1
-      }':x='${jumpX}*on':y='${jumpY}*on':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      `zoompan=z='zoom+${adjustedZoomIncrement}':x='${jumpX}*on':y='${jumpY}*on':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
       "-c:v",
       "libx264",
       outFileName,
