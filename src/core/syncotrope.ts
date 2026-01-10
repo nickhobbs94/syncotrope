@@ -11,10 +11,6 @@ import {
   buildConcatList,
 } from "./ffmpeg-filters";
 
-/*
-We want to refactor the Syncotrope class to be like the interface.
-*/
-
 export interface ISyncotrope {
   loadSettings(): void;
 
@@ -37,16 +33,20 @@ export class Syncotrope implements ISyncotrope {
   }
 
   /**
-   * Process multiple images into a single video.
-   * Currently processes only the first image (multi-image concatenation not yet implemented).
+   * Process multiple images into a single concatenated video.
    */
   public async processImages(files: Uint8Array[]): Promise<Uint8Array> {
     if (files.length === 0) {
       throw new Error("No files provided");
     }
-    // For now, process only the first image
-    // TODO: Implement concatenation for multiple images
-    return this.processImage(files[0]);
+
+    const videos: Uint8Array[] = [];
+    for (const file of files) {
+      const video = await this.processImage(file);
+      videos.push(video);
+    }
+
+    return this.concatenateVideos(videos);
   }
 
   /**
