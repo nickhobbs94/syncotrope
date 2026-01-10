@@ -90,18 +90,22 @@ export class Syncotrope implements ISyncotrope {
   private async combinedZoomAndVideo(
     image: FileReference,
   ): Promise<FileReference> {
-    const outFileName = `video-output-${new Date().getTime().toString()}.mp4`;
+    const format = this.settings.outputFormat;
+    const outFileName = `video-output-${Date.now()}.${format}`;
 
-    console.log("Begin making video");
+    console.log(`Begin making video (format: ${format})`);
 
     const zoompanFilter = zoompanFilterFromSettings(this.settings);
+
+    // Build codec arguments based on format
+    const codecArgs = this.getCodecArgs();
+
     const result = await this.ffmpeg.exec([
       "-i",
       image.name,
       "-vf",
       zoompanFilter,
-      "-c:v",
-      "libx264",
+      ...codecArgs,
       outFileName,
     ]);
 
@@ -112,6 +116,30 @@ export class Syncotrope implements ISyncotrope {
     console.log(`Video made, saved under ${outFileName}`);
 
     return { name: outFileName };
+  }
+
+  /**
+   * Get FFmpeg codec arguments based on output format and quality settings.
+   */
+  private getCodecArgs(): string[] {
+    const { outputFormat, videoQuality } = this.settings;
+
+    switch (outputFormat) {
+      case "webm":
+        // VP9 codec for WebM, CRF range 0-63 (we'll use the same value)
+        return [
+          "-c:v",
+          "libvpx-vp9",
+          "-crf",
+          String(videoQuality),
+          "-b:v",
+          "0",
+        ];
+      case "mp4":
+      default:
+        // H.264 codec for MP4
+        return ["-c:v", "libx264", "-crf", String(videoQuality)];
+    }
   }
 
   // Scale an image to the desired resolution
