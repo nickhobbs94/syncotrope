@@ -8,6 +8,7 @@ import {
   buildScaleFilter,
   buildBlurFilter,
   buildOverlayFilter,
+  buildConcatList,
 } from "./ffmpeg-filters";
 
 /*
@@ -220,5 +221,59 @@ export class Syncotrope implements ISyncotrope {
       throw new Error("Error from blur");
     }
     return { name: outFileName };
+  }
+
+  /**
+   * Concatenate multiple videos into a single output video.
+   * Uses FFmpeg's concat demuxer for seamless joining.
+   */
+  public async concatenateVideos(videos: Uint8Array[]): Promise<Uint8Array> {
+    if (videos.length === 0) {
+      throw new Error("No videos to concatenate");
+    }
+
+    if (videos.length === 1) {
+      return videos[0];
+    }
+
+    // Write all video files to the virtual filesystem
+    const videoRefs: FileReference[] = [];
+    for (let i = 0; i < videos.length; i++) {
+      const fileName = `video-${Date.now()}-${i}.mp4`;
+      const ref = await this.fs.putFile(fileName, videos[i]);
+      videoRefs.push(ref);
+    }
+
+    const outFileName = `concat-output-${Date.now()}.mp4`;
+    const listFileName = `concat-list-${Date.now()}.txt`;
+
+    // Create concat list file content
+    const listContent = buildConcatList(videoRefs.map((v) => v.name));
+
+    // Write the list file to FFmpeg's virtual filesystem
+    const encoder = new TextEncoder();
+    await this.fs.putFile(listFileName, encoder.encode(listContent));
+
+    console.log(`Concatenating ${videos.length} videos`);
+
+    const result = await this.ffmpeg.exec([
+      "-f",
+      "concat",
+      "-safe",
+      "0",
+      "-i",
+      listFileName,
+      "-c",
+      "copy",
+      outFileName,
+    ]);
+
+    if (result !== 0) {
+      throw new Error("Error from video concatenation");
+    }
+
+    console.log(`Videos concatenated, saved under ${outFileName}`);
+
+    return this.fs.getFile(outFileName);
   }
 }

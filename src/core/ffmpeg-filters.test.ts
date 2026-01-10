@@ -7,6 +7,7 @@ import {
   buildScaleFilter,
   buildBlurFilter,
   buildOverlayFilter,
+  buildConcatList,
   ZoompanParams,
 } from "./ffmpeg-filters";
 import { ZoomSettings } from "./zoom";
@@ -289,5 +290,30 @@ describe("settings to filter integration", () => {
     assert.ok(filter.includes("d="));
     assert.ok(filter.includes("fps="));
     assert.ok(filter.includes("s="));
+  });
+});
+
+describe("buildConcatList", () => {
+  it("builds correct format for single file", () => {
+    const list = buildConcatList(["video1.mp4"]);
+    assert.strictEqual(list, "file 'video1.mp4'");
+  });
+
+  it("builds correct format for multiple files", () => {
+    const list = buildConcatList(["video1.mp4", "video2.mp4", "video3.mp4"]);
+    assert.strictEqual(
+      list,
+      "file 'video1.mp4'\nfile 'video2.mp4'\nfile 'video3.mp4'",
+    );
+  });
+
+  it("returns empty string for empty array", () => {
+    const list = buildConcatList([]);
+    assert.strictEqual(list, "");
+  });
+
+  it("handles filenames with special characters", () => {
+    const list = buildConcatList(["video-1.mp4", "video_2.mp4"]);
+    assert.strictEqual(list, "file 'video-1.mp4'\nfile 'video_2.mp4'");
   });
 });

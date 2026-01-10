@@ -98,3 +98,11 @@ export function buildOverlayFilter(
 ): string {
   return `[0:v][1:v]overlay=(${targetWidth}/2)-(overlay_w/2):0,crop=${targetWidth}:${targetHeight}:0:0[outv]`;
 }
+
+/**
+ * Build concat list file content for FFmpeg's concat demuxer.
+ * @param filenames - Array of video filenames to concatenate
+ */
+export function buildConcatList(filenames: string[]): string {
+  return filenames.map((f) => `file '${f}'`).join("\n");
+}
