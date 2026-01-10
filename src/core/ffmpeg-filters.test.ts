@@ -192,6 +192,20 @@ describe("buildOverlayFilter", () => {
     assert.ok(filter.includes("(1280/2)-(overlay_w/2)"));
     assert.ok(filter.includes("crop=1280:720:0:0"));
   });
+
+  it("handles 4K resolution", () => {
+    const filter = buildOverlayFilter(3840, 2160);
+
+    assert.ok(filter.includes("(3840/2)-(overlay_w/2)"));
+    assert.ok(filter.includes("crop=3840:2160:0:0"));
+  });
+
+  it("handles square aspect ratio", () => {
+    const filter = buildOverlayFilter(1080, 1080);
+
+    assert.ok(filter.includes("(1080/2)-(overlay_w/2)"));
+    assert.ok(filter.includes("crop=1080:1080:0:0"));
+  });
 });
 
 describe("settings to filter integration", () => {
@@ -231,5 +245,49 @@ describe("settings to filter integration", () => {
     // Same zoomRate but more frames = higher final zoom = larger total offset
     // Jump size stays similar (slightly larger due to more total zoom)
     assert.ok(longParams.jumpX >= shortParams.jumpX);
+  });
+
+  it("handles 60fps video settings", () => {
+    const highFpsSettings: ZoomSettings = {
+      ...defaultSettings,
+      frameRate: 60,
+    };
+    const params = calculateZoompanParams(highFpsSettings);
+
+    assert.strictEqual(params.fps, 60);
+    assert.strictEqual(params.duration, 180); // 60 * 3
+    assert.ok(params.jumpX > 0);
+    assert.ok(params.jumpY > 0);
+  });
+
+  it("handles 4K resolution settings", () => {
+    const uhd4kSettings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 3840,
+      targetHeight: 2160,
+    };
+    const params = calculateZoompanParams(uhd4kSettings);
+
+    assert.strictEqual(params.width, 3840);
+    assert.strictEqual(params.height, 2160);
+    // 4K should have larger jumps than HD
+    const hdParams = calculateZoompanParams(defaultSettings);
+    assert.ok(params.jumpX > hdParams.jumpX);
+    assert.ok(params.jumpY > hdParams.jumpY);
+  });
+
+  it("produces complete end-to-end filter from settings", () => {
+    const filter = zoompanFilterFromSettings(defaultSettings);
+
+    // Should be a valid FFmpeg zoompan filter
+    assert.ok(filter.startsWith("zoompan="));
+    assert.ok(filter.includes("z="));
+    assert.ok(filter.includes("x="));
+    assert.ok(filter.includes("y="));
+    assert.ok(filter.includes("d="));
+    assert.ok(filter.includes("fps="));
+    assert.ok(filter.includes("s="));
   });
 });

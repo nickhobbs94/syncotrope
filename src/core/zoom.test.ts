@@ -345,6 +345,93 @@ describe("isNearInteger", () => {
   });
 });
 
+describe("edge cases", () => {
+  it("handles very small zoom rate (1.001)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.001,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const zoom = finalZoomLevel(settings);
+    // 1 + 0.001 * 75 = 1.075
+    assert.ok(Math.abs(zoom - 1.075) < 0.0001, `Expected 1.075, got ${zoom}`);
+  });
+
+  it("handles high frame rate (60fps)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 60,
+      imageDurationSeconds: 3,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const zoom = finalZoomLevel(settings);
+    // 1 + 0.005 * 180 = 1.9
+    assert.ok(Math.abs(zoom - 1.9) < 0.0001, `Expected 1.9, got ${zoom}`);
+  });
+
+  it("handles short duration (1 second)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 1,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const zoom = finalZoomLevel(settings);
+    // 1 + 0.005 * 25 = 1.125
+    assert.ok(Math.abs(zoom - 1.125) < 0.0001, `Expected 1.125, got ${zoom}`);
+  });
+
+  it("handles long duration (10 seconds)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 10,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const zoom = finalZoomLevel(settings);
+    // 1 + 0.005 * 250 = 2.25
+    assert.ok(Math.abs(zoom - 2.25) < 0.0001, `Expected 2.25, got ${zoom}`);
+  });
+
+  it("handles 4K resolution", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 3840,
+      targetHeight: 2160,
+    };
+    const dims = upscaledDimensions(settings);
+    // finalZoom = 1.375
+    assert.ok(
+      Math.abs(dims.width - 3840 * 1.375) < 0.01,
+      `Expected ${3840 * 1.375}, got ${dims.width}`,
+    );
+    assert.ok(
+      Math.abs(dims.height - 2160 * 1.375) < 0.01,
+      `Expected ${2160 * 1.375}, got ${dims.height}`,
+    );
+  });
+
+  it("handles non-16:9 aspect ratio", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 1080,
+      targetHeight: 1080, // Square
+    };
+    const dims = upscaledDimensions(settings);
+    // Should maintain square aspect ratio
+    assert.strictEqual(dims.width, dims.height);
+  });
+});
+
 describe("analyzeZoomForJitter", () => {
   it("produces no jitter with default settings", () => {
     const settings: ZoomSettings = {
