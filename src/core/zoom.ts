@@ -155,6 +155,38 @@ export function isNearInteger(value: number, tolerance: number = 0.001): boolean
 }
 
 /**
+ * Calculate the zoom level needed to keep the image centered at a given linear position.
+ * This is the inverse of centerOffsetX - given a target offset, what zoom produces it?
+ *
+ * Derivation:
+ * centerOffsetX = inputSize * (zoom - 1) / (2 * zoom) = targetOffset
+ * => inputSize * (zoom - 1) = 2 * zoom * targetOffset
+ * => inputSize * zoom - inputSize = 2 * targetOffset * zoom
+ * => zoom * (inputSize - 2 * targetOffset) = inputSize
+ * => zoom = inputSize / (inputSize - 2 * targetOffset)
+ */
+export function zoomForCenteredOffset(inputSize: number, targetOffset: number): number {
+  return inputSize / (inputSize - 2 * targetOffset);
+}
+
+/**
+ * Calculate the hyperbolic zoom at a given frame to stay centered with linear position.
+ * This eliminates focus drift by making zoom follow the position exactly.
+ *
+ * @param inputSize - Input dimension (width or height of upscaled image)
+ * @param jumpSize - Pixels moved per frame
+ * @param frame - Current frame number
+ */
+export function hyperbolicZoomAtFrame(
+  inputSize: number,
+  jumpSize: number,
+  frame: number,
+): number {
+  const targetOffset = jumpSize * frame;
+  return zoomForCenteredOffset(inputSize, targetOffset);
+}
+
+/**
  * Analyze zoom parameters for potential jitter issues.
  * Uses linear interpolation which produces monotonic jumps.
  * Returns an array of warnings about issues that could cause visible jitter.

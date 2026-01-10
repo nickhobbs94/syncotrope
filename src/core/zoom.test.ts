@@ -15,6 +15,8 @@ import {
   finalOffset,
   isNearInteger,
   analyzeZoomForJitter,
+  zoomForCenteredOffset,
+  hyperbolicZoomAtFrame,
   ZoomSettings,
 } from "./zoom.js";
 
@@ -201,6 +203,115 @@ describe("adjustedFinalZoom and adjustedZoomRate", () => {
     assert.ok(
       Math.abs(zoomBasedOffset - linearOffset) < 1,
       `Final frame: zoom offset ${zoomBasedOffset.toFixed(2)} vs linear ${linearOffset}`,
+    );
+  });
+});
+
+describe("focus drift with linear zoom", () => {
+  it("detects drift at middle frames when using linear zoom", () => {
+    const inputSize = 2640;
+    const totalFrames = 75;
+    const userFinalZoom = 1.375;
+    const jumpSize = constantJumpSize(inputSize, totalFrames, userFinalZoom);
+    const zoomRate = adjustedZoomRate(inputSize, jumpSize, totalFrames);
+
+    // Track maximum drift across all frames
+    let maxDrift = 0;
+    let maxDriftFrame = 0;
+
+    for (let frame = 0; frame <= totalFrames; frame++) {
+      // Linear zoom progression
+      const linearZoom = 1 + (zoomRate - 1) * frame;
+      const zoomBasedOffset = centerOffsetX(inputSize, linearZoom);
+
+      // Linear position progression
+      const linearOffset = jumpSize * frame;
+
+      const drift = Math.abs(zoomBasedOffset - linearOffset);
+      if (drift > maxDrift) {
+        maxDrift = drift;
+        maxDriftFrame = frame;
+      }
+    }
+
+    // With linear zoom, drift peaks around the middle frames
+    // This test documents the current behavior - drift should be > 0 at middle
+    assert.ok(
+      maxDrift > 1,
+      `Expected drift > 1 pixel at middle frames, but max drift was ${maxDrift.toFixed(2)} at frame ${maxDriftFrame}`,
+    );
+    assert.ok(
+      maxDriftFrame > 10 && maxDriftFrame < totalFrames - 10,
+      `Expected max drift near middle, but was at frame ${maxDriftFrame}`,
+    );
+  });
+});
+
+describe("zoomForCenteredOffset", () => {
+  it("returns 1.0 when target offset is 0", () => {
+    assert.strictEqual(zoomForCenteredOffset(2640, 0), 1);
+  });
+
+  it("is the inverse of centerOffsetX", () => {
+    const inputSize = 2640;
+    const testZooms = [1.1, 1.25, 1.375, 1.5, 2.0];
+
+    for (const zoom of testZooms) {
+      const offset = centerOffsetX(inputSize, zoom);
+      const recoveredZoom = zoomForCenteredOffset(inputSize, offset);
+      assert.ok(
+        Math.abs(recoveredZoom - zoom) < 0.0001,
+        `zoom ${zoom} -> offset ${offset} -> zoom ${recoveredZoom}`,
+      );
+    }
+  });
+});
+
+describe("hyperbolicZoomAtFrame", () => {
+  it("returns 1.0 at frame 0", () => {
+    assert.strictEqual(hyperbolicZoomAtFrame(2640, 5, 0), 1);
+  });
+
+  it("produces correct final zoom", () => {
+    const inputSize = 2640;
+    const jumpSize = 5;
+    const totalFrames = 75;
+
+    const finalZoom = hyperbolicZoomAtFrame(inputSize, jumpSize, totalFrames);
+    const expectedFinalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+
+    assert.ok(
+      Math.abs(finalZoom - expectedFinalZoom) < 0.0001,
+      `Expected ${expectedFinalZoom}, got ${finalZoom}`,
+    );
+  });
+
+  it("eliminates focus drift at every frame", () => {
+    const inputSize = 2640;
+    const totalFrames = 75;
+    const userFinalZoom = 1.375;
+    const jumpSize = constantJumpSize(inputSize, totalFrames, userFinalZoom);
+
+    let maxDrift = 0;
+
+    for (let frame = 0; frame <= totalFrames; frame++) {
+      // Hyperbolic zoom that follows the position
+      const zoom = hyperbolicZoomAtFrame(inputSize, jumpSize, frame);
+      const zoomBasedOffset = centerOffsetX(inputSize, zoom);
+
+      // Linear position
+      const linearOffset = jumpSize * frame;
+
+      const drift = Math.abs(zoomBasedOffset - linearOffset);
+      if (drift > maxDrift) {
+        maxDrift = drift;
+      }
+    }
+
+    // With hyperbolic zoom, drift should be essentially zero
+    assert.ok(
+      maxDrift < 0.0001,
+      `Expected no drift, but max drift was ${maxDrift.toFixed(6)}`,
     );
   });
 });

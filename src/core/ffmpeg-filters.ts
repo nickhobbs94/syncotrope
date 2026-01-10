@@ -56,9 +56,19 @@ export function calculateZoompanParams(settings: ZoomSettings): ZoompanParams {
 
 /**
  * Build zoompan filter string from parameters.
+ * Uses hyperbolic zoom formula to keep focus centered (eliminates drift).
+ *
+ * The zoom formula z = iw/(iw-2*jumpX*on) is derived from:
+ * - We want position to move linearly: x = jumpX * on
+ * - For the zoom to stay centered, zoom must satisfy: centerOffset(zoom) = jumpX * on
+ * - Solving for zoom: zoom = inputSize / (inputSize - 2 * targetOffset)
+ * - Since FFmpeg's 'iw' gives us inputSize and 'on' gives us frame number:
+ *   z = iw / (iw - 2 * jumpX * on)
  */
 export function buildZoompanFilter(params: ZoompanParams): string {
-  return `zoompan=z='zoom+${params.zoomIncrement}':x='${params.jumpX}*on':y='${params.jumpY}*on':d=${params.duration}:fps=${params.fps}:s=${params.width}x${params.height}`;
+  // Use hyperbolic zoom to eliminate focus drift
+  // z = iw / (iw - 2 * jumpX * on) keeps zoom and position perfectly synchronized
+  return `zoompan=z='iw/(iw-2*${params.jumpX}*on)':x='${params.jumpX}*on':y='${params.jumpY}*on':d=${params.duration}:fps=${params.fps}:s=${params.width}x${params.height}`;
 }
 
 /**

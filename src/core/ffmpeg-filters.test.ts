@@ -74,7 +74,7 @@ describe("calculateZoompanParams", () => {
 describe("buildZoompanFilter", () => {
   it("produces valid FFmpeg zoompan filter syntax", () => {
     const params: ZoompanParams = {
-      zoomIncrement: 0.005,
+      zoomIncrement: 0.005, // Not used in hyperbolic formula, but kept for compatibility
       jumpX: 10,
       jumpY: 6,
       duration: 75,
@@ -85,7 +85,8 @@ describe("buildZoompanFilter", () => {
     const filter = buildZoompanFilter(params);
 
     assert.ok(filter.startsWith("zoompan="));
-    assert.ok(filter.includes("z='zoom+0.005'"));
+    // Uses hyperbolic zoom formula: z = iw/(iw-2*jumpX*on)
+    assert.ok(filter.includes("z='iw/(iw-2*10*on)'"));
     assert.ok(filter.includes("x='10*on'"));
     assert.ok(filter.includes("y='6*on'"));
     assert.ok(filter.includes("d=75"));
@@ -93,7 +94,7 @@ describe("buildZoompanFilter", () => {
     assert.ok(filter.includes("s=1920x1080"));
   });
 
-  it("uses on variable for frame-based position", () => {
+  it("uses hyperbolic zoom formula to eliminate drift", () => {
     const params: ZoompanParams = {
       zoomIncrement: 0.01,
       jumpX: 5,
@@ -105,7 +106,12 @@ describe("buildZoompanFilter", () => {
     };
     const filter = buildZoompanFilter(params);
 
-    // 'on' is FFmpeg's frame number variable
+    // Hyperbolic zoom: z = iw/(iw-2*jumpX*on)
+    assert.ok(
+      filter.includes("z='iw/(iw-2*5*on)'"),
+      `Expected hyperbolic zoom formula, got: ${filter}`,
+    );
+    // Position still uses linear formula
     assert.ok(filter.includes("x='5*on'"));
     assert.ok(filter.includes("y='3*on'"));
   });
