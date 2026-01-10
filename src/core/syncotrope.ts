@@ -76,7 +76,7 @@ export class Syncotrope {
       "-vf",
       `zoompan=z='zoom+${
         this.settings.zoomRate - 1
-      }':x='(iw/2-iw/zoom/2)':y='(ih/2-ih/zoom/2)':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      }':x='floor(iw/2-iw/zoom/2)':y='floor(ih/2-ih/zoom/2)':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
       "-c:v",
       "libx264",
       outFileName,

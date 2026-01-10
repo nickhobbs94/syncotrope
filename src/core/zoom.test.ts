@@ -6,6 +6,8 @@ import {
   upscaledDimensions,
   centerOffsetX,
   centerOffsetY,
+  flooredOffsetX,
+  flooredOffsetY,
   isNearInteger,
   analyzeZoomForJitter,
   ZoomSettings,
@@ -103,6 +105,46 @@ describe("centerOffsetX and centerOffsetY", () => {
   });
 });
 
+describe("flooredOffsetX and flooredOffsetY", () => {
+  it("returns integer values", () => {
+    // At zoom 1.005, the ideal offset would be fractional
+    const zoom = 1.005;
+    const offsetX = flooredOffsetX(2640, zoom);
+    const offsetY = flooredOffsetY(1485, zoom);
+    assert.strictEqual(offsetX, Math.floor(offsetX));
+    assert.strictEqual(offsetY, Math.floor(offsetY));
+  });
+
+  it("floors fractional offsets", () => {
+    // 1920 / 6 = 320, which is already an integer
+    assert.strictEqual(flooredOffsetX(1920, 1.5), 320);
+    // For a fractional result, floor should round down
+    // centerOffsetX(1000, 1.5) = 1000/2 - 1000/1.5/2 = 500 - 333.33... = 166.66...
+    assert.strictEqual(flooredOffsetX(1000, 1.5), 166);
+  });
+
+  it("produces smooth progression across frames", () => {
+    // Verify offsets increase smoothly with consistent jumps
+    const width = 2640;
+    let prevOffset = flooredOffsetX(width, 1);
+    let prevJump = 0;
+    for (let frame = 1; frame <= 75; frame++) {
+      const zoom = 1 + 0.005 * frame;
+      const offset = flooredOffsetX(width, zoom);
+      const jump = offset - prevOffset;
+      // Offset should always increase
+      assert.ok(jump >= 0, `Frame ${frame}: offset should not decrease`);
+      // Jump should be consistent (vary by at most 1 due to floor rounding)
+      if (frame > 1) {
+        const variation = Math.abs(jump - prevJump);
+        assert.ok(variation <= 1, `Frame ${frame}: jump varied by ${variation} (was ${prevJump}, now ${jump})`);
+      }
+      prevOffset = offset;
+      prevJump = jump;
+    }
+  });
+});
+
 describe("isNearInteger", () => {
   it("returns true for integers", () => {
     assert.ok(isNearInteger(5));
@@ -122,7 +164,6 @@ describe("isNearInteger", () => {
 });
 
 describe("analyzeZoomForJitter", () => {
-  // TDD TARGET: This test FAILS now, should PASS after fixing jitter
   it("produces no jitter with default settings", () => {
     const settings: ZoomSettings = {
       zoomRate: 1.005,
