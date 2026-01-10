@@ -180,6 +180,48 @@ describe("analyzeZoomForJitter", () => {
     );
   });
 
+  // TDD TARGET: Jumps should be monotonic, not alternating back and forth
+  it("produces monotonic jumps without back-and-forth variation", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const { width: upscaledWidth } = upscaledDimensions(settings);
+    const totalFrames = settings.frameRate * settings.imageDurationSeconds;
+
+    // Collect all jumps
+    const jumps: number[] = [];
+    let prevOffset = flooredOffsetX(upscaledWidth, 1);
+    for (let frame = 1; frame <= totalFrames; frame++) {
+      const zoom = 1 + (settings.zoomRate - 1) * frame;
+      const offset = flooredOffsetX(upscaledWidth, zoom);
+      jumps.push(offset - prevOffset);
+      prevOffset = offset;
+    }
+
+    // Check for back-and-forth pattern (e.g., 6,7,6,7 is bad, 6,6,7,7 is ok)
+    let directionChanges = 0;
+    for (let i = 2; i < jumps.length; i++) {
+      const prevDiff = jumps[i - 1] - jumps[i - 2];
+      const currDiff = jumps[i] - jumps[i - 1];
+      // If we went up then down, or down then up, that's a direction change
+      if ((prevDiff > 0 && currDiff < 0) || (prevDiff < 0 && currDiff > 0)) {
+        directionChanges++;
+      }
+    }
+
+    // With current floor() approach, we get many direction changes (back and forth)
+    // After fix, direction changes should be 0 (monotonic) or very few
+    assert.strictEqual(
+      directionChanges,
+      0,
+      `Expected monotonic jumps but got ${directionChanges} direction changes. Jumps: ${jumps.slice(0, 20).join(",")}...`,
+    );
+  });
+
   it("detects non-integer upscaled dimensions", () => {
     const settings: ZoomSettings = {
       zoomRate: 1.003, // Will likely produce non-integer dimensions
