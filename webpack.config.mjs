@@ -22,8 +22,9 @@ export default {
         extensions: ['.tsx', '.ts', '.js']
     },
     output: {
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist/webpack')
+        filename: 'bundle.[contenthash].js',
+        path: path.resolve(__dirname, 'dist/webpack'),
+        clean: true
     },
     plugins: [
         new HtmlWebpackPlugin({
