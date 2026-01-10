@@ -4,11 +4,16 @@ import type { FFmpeg as FFmpegClass } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
 import { setupSettingsSidebar } from "./ui/settings-sidebar";
 import { setProgress } from "./ui/progress-bar";
+import { getSettings, OutputFormat } from "./core/settings";
 
 declare const FFmpegWASM: { FFmpeg: typeof FFmpegClass };
 const { FFmpeg } = FFmpegWASM;
 
 const syncotrope = new Syncotrope(new FFmpeg());
+
+function getMimeType(format: OutputFormat): string {
+  return format === "webm" ? "video/webm" : "video/mp4";
+}
 
 const processFiles = async (event: Event) => {
   const files = (event.target as HTMLInputElement)?.files;
@@ -18,6 +23,9 @@ const processFiles = async (event: Event) => {
   }
 
   syncotrope.loadSettings();
+  const settings = getSettings();
+  const mimeType = getMimeType(settings.outputFormat);
+  const outputFilename = `output.${settings.outputFormat}`;
 
   for (const file of files) {
     setProgress(0.1);
@@ -28,7 +36,7 @@ const processFiles = async (event: Event) => {
 
     setProgress(100);
 
-    downloadBuffer(videoData, "output.mp4", "video/mp4");
+    downloadBuffer(videoData, outputFilename, mimeType);
   }
 };
 

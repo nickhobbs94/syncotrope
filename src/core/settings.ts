@@ -2,6 +2,9 @@ export type SyncotropeSettings = {
   logging: LoggingFlags[];
 } & UserSettings;
 
+// Supported output formats
+export type OutputFormat = "mp4" | "webm";
+
 // settings configued by the user in the UI
 type UserSettings = {
   targetHeight: number;
@@ -10,6 +13,8 @@ type UserSettings = {
   zoomRate: number;
   frameRate: number;
   imageDurationSeconds: number;
+  outputFormat: OutputFormat;
+  videoQuality: number; // CRF value: 0-51, lower = better quality, 23 is default
 };
 
 type LoggingFlags = "ffmpeg" | "file-transfer" | "debug";
@@ -21,6 +26,8 @@ const defaults: SyncotropeSettings = {
   zoomRate: 1.005,
   frameRate: 25,
   imageDurationSeconds: 3,
+  outputFormat: "mp4",
+  videoQuality: 23,
   logging: [],
 };
 
@@ -32,6 +39,8 @@ const elementMapping: Record<keyof UserSettings, string> = {
   zoomRate: "zoomRate",
   frameRate: "frameRate",
   imageDurationSeconds: "imageDurationSeconds",
+  outputFormat: "outputFormat",
+  videoQuality: "videoQuality",
 };
 
 function setElementValueById(
@@ -84,11 +93,12 @@ export function getSettings(): SyncotropeSettings {
     if (setting in elementMapping) {
       const userValue = getElementValueById(setting as keyof UserSettings);
 
-      if (setting === "targetBlur") {
-        foundSettings[setting] = userValue;
+      if (setting === "targetBlur" || setting === "outputFormat") {
+        foundSettings[setting] = userValue as OutputFormat;
       } else {
-        foundSettings[setting as keyof Omit<UserSettings, "targetBlur">] =
-          Number(userValue);
+        foundSettings[
+          setting as keyof Omit<UserSettings, "targetBlur" | "outputFormat">
+        ] = Number(userValue);
       }
     } else {
       console.log(`Cannot find ${setting} in ${elementMapping}`);

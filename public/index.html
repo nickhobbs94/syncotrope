@@ -33,6 +33,13 @@
     <input type="number" id="frameRate" value="25">
     <label for="imageDurationSeconds">Image duration (seconds):</label>
     <input type="number" id="imageDurationSeconds" value="3">
+    <label for="outputFormat">Output format:</label>
+    <select id="outputFormat">
+      <option value="mp4" selected>MP4 (H.264)</option>
+      <option value="webm">WebM (VP9)</option>
+    </select>
+    <label for="videoQuality">Video quality (CRF, lower=better):</label>
+    <input type="number" id="videoQuality" value="23" min="0" max="51">
   </div>
 
 </body>
