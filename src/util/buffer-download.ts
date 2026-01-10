@@ -5,7 +5,7 @@ export function downloadBuffer(
   mimeType: string,
 ) {
   // 1. Convert the buffer to a Blob
-  const blob = new Blob([buffer], { type: mimeType });
+  const blob = new Blob([buffer as BlobPart], { type: mimeType });
 
   // 2. Create an Object URL
   const url = URL.createObjectURL(blob);
