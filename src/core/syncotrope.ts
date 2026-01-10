@@ -20,9 +20,9 @@ export interface ISyncotrope {
   processImages(files: Uint8Array[]): Promise<Uint8Array>;
 }
 
-export class Syncotrope {
+export class Syncotrope implements ISyncotrope {
   private settings: SyncotropeSettings;
-  public fs: FileSystemHandler;
+  private fs: FileSystemHandler;
 
   constructor(private ffmpeg: FFmpeg) {
     this.settings = getSettings();
@@ -35,7 +35,34 @@ export class Syncotrope {
     this.settings = getSettings();
   }
 
-  public async standardizeImage(file: FileReference): Promise<FileReference> {
+  /**
+   * Process multiple images into a single video.
+   * Currently processes only the first image (multi-image concatenation not yet implemented).
+   */
+  public async processImages(files: Uint8Array[]): Promise<Uint8Array> {
+    if (files.length === 0) {
+      throw new Error("No files provided");
+    }
+    // For now, process only the first image
+    // TODO: Implement concatenation for multiple images
+    return this.processImage(files[0]);
+  }
+
+  /**
+   * Process a single image into a video with zoom effect.
+   * This is the main public API - takes raw image data and returns video data.
+   */
+  public async processImage(imageData: Uint8Array): Promise<Uint8Array> {
+    const inputName = `input-${Date.now()}.png`;
+    const inputRef = await this.fs.putFile(inputName, imageData);
+
+    const standardized = await this.standardizeImage(inputRef);
+    const videoRef = await this.combinedZoomAndVideo(standardized);
+
+    return this.fs.getFile(videoRef.name);
+  }
+
+  private async standardizeImage(file: FileReference): Promise<FileReference> {
     const fillHorizontalImage = await this.scaleImage(
       file,
       this.settings.targetWidth,
@@ -60,7 +87,7 @@ export class Syncotrope {
     );
   }
 
-  public async combinedZoomAndVideo(
+  private async combinedZoomAndVideo(
     image: FileReference,
   ): Promise<FileReference> {
     const outFileName = `video-output-${new Date().getTime().toString()}.mp4`;
@@ -88,7 +115,7 @@ export class Syncotrope {
   }
 
   // Scale an image to the desired resolution
-  public async scaleImage(
+  private async scaleImage(
     file: FileReference,
     horizontalSize: number,
     verticalSize: number,
@@ -116,7 +143,7 @@ export class Syncotrope {
   }
 
   // overlay an image over another
-  public async overlayImage(
+  private async overlayImage(
     backgroundImage: FileReference,
     foregroundImage: FileReference,
   ): Promise<FileReference> {
@@ -147,7 +174,7 @@ export class Syncotrope {
     return { name: outFileName };
   }
 
-  public async blurImage(file: FileReference): Promise<FileReference> {
+  private async blurImage(file: FileReference): Promise<FileReference> {
     const outFileName = `blur-output-${new Date().getTime().toString()}.png`;
 
     const blurFilter = buildBlurFilter(this.settings.targetBlur);
