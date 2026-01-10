@@ -8,17 +8,10 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm install
-    - run: npm run code-check
-    - run: npm run test
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+    - run: bun install
+    - run: bun run code-check
+    - run: bun test

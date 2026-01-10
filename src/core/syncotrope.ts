@@ -1,7 +1,14 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
-import { SyncotropeSettings, getSettings } from "../core/settings";
+import { SyncotropeSettings, getSettings } from "./settings";
 import { updateProgressFromFFmpegLog } from "../ui/progress-bar";
 import { FileReference, FileSystemHandler } from "./file-system";
+import { finalZoomLevel } from "./zoom";
+import {
+  zoompanFilterFromSettings,
+  buildScaleFilter,
+  buildBlurFilter,
+  buildOverlayFilter,
+} from "./ffmpeg-filters";
 
 /*
 We want to refactor the Syncotrope class to be like the interface.
@@ -45,11 +52,7 @@ export class Syncotrope {
     const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
 
     // upscale the final image to avoid jitter
-    const finalZoom =
-      1 +
-      (this.settings.zoomRate - 1) *
-        this.settings.frameRate *
-        this.settings.imageDurationSeconds;
+    const finalZoom = finalZoomLevel(this.settings);
     return await this.scaleImage(
       overlaidImage,
       this.settings.targetWidth * finalZoom,
@@ -62,21 +65,14 @@ export class Syncotrope {
   ): Promise<FileReference> {
     const outFileName = `video-output-${new Date().getTime().toString()}.mp4`;
 
-    const FPS = this.settings.frameRate;
-    const W = this.settings.targetWidth;
-    const H = this.settings.targetHeight;
-
-    const DURATION = FPS * this.settings.imageDurationSeconds;
-
     console.log("Begin making video");
 
+    const zoompanFilter = zoompanFilterFromSettings(this.settings);
     const result = await this.ffmpeg.exec([
       "-i",
       image.name,
       "-vf",
-      `zoompan=z='zoom+${
-        this.settings.zoomRate - 1
-      }':x='(iw/2-iw/zoom/2)':y='(ih/2-ih/zoom/2)':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      zoompanFilter,
       "-c:v",
       "libx264",
       outFileName,
@@ -99,14 +95,14 @@ export class Syncotrope {
   ): Promise<FileReference> {
     const outFileName = `scale-output-${new Date().getTime().toString()}.png`;
 
-    const scaleParameter = `scale=${horizontalSize}:${verticalSize}`;
-    console.log(`Scaling image with setting: ${scaleParameter}`);
+    const scaleFilter = buildScaleFilter(horizontalSize, verticalSize);
+    console.log(`Scaling image with setting: ${scaleFilter}`);
 
     const result = await this.ffmpeg.exec([
       "-i",
       file.name,
       "-vf",
-      scaleParameter,
+      scaleFilter,
       "-c:a",
       "copy",
       outFileName,
@@ -126,13 +122,17 @@ export class Syncotrope {
   ): Promise<FileReference> {
     const outFileName = `overlay-output-${new Date().getTime().toString()}.png`;
 
+    const overlayFilter = buildOverlayFilter(
+      this.settings.targetWidth,
+      this.settings.targetHeight,
+    );
     const result = await this.ffmpeg.exec([
       "-i",
       backgroundImage.name,
       "-i",
       foregroundImage.name,
       "-filter_complex",
-      `[0:v][1:v]overlay=(${this.settings.targetWidth}/2)-(overlay_w/2):0,crop=${this.settings.targetWidth}:${this.settings.targetHeight}:0:0[outv]`,
+      overlayFilter,
       "-map",
       "[outv]",
       "-c:a",
@@ -150,11 +150,12 @@ export class Syncotrope {
   public async blurImage(file: FileReference): Promise<FileReference> {
     const outFileName = `blur-output-${new Date().getTime().toString()}.png`;
 
+    const blurFilter = buildBlurFilter(this.settings.targetBlur);
     const result = await this.ffmpeg.exec([
       "-i",
       file.name,
       "-vf",
-      `boxblur=${this.settings.targetBlur}`,
+      blurFilter,
       "-c:a",
       "copy",
       outFileName,

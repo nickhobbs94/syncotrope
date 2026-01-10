@@ -1,7 +1,6 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
-import type * as UtilTypes from "@ffmpeg/util";
+import { fetchFile } from "@ffmpeg/util";
 import { SyncotropeSettings } from "./settings";
-declare const FFmpegUtil: { fetchFile: typeof UtilTypes.fetchFile };
 
 export type FileReference = {
   name: string;
@@ -34,7 +33,6 @@ export class FileSystemHandler {
   }
 
   public async loadFile(fileInfo: File): Promise<FileReference> {
-    const { fetchFile } = FFmpegUtil;
     const fileBuffer: Uint8Array = await fetchFile(fileInfo);
     const name: string = fileInfo.name;
     await this.putFile(name, fileBuffer);
