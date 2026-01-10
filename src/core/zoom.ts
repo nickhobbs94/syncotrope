@@ -51,7 +51,7 @@ export function upscaledDimensions(settings: ZoomSettings): {
  */
 export function centerOffsetX(inputWidth: number, zoom: number): number {
   // Formula: (iw/2 - iw/zoom/2) = iw * (1/2 - 1/(2*zoom)) = iw * (zoom - 1) / (2 * zoom)
-  return (inputWidth / 2) - (inputWidth / zoom / 2);
+  return inputWidth / 2 - inputWidth / zoom / 2;
 }
 
 /**
@@ -59,7 +59,7 @@ export function centerOffsetX(inputWidth: number, zoom: number): number {
  * ih = input height (upscaled image height)
  */
 export function centerOffsetY(inputHeight: number, zoom: number): number {
-  return (inputHeight / 2) - (inputHeight / zoom / 2);
+  return inputHeight / 2 - inputHeight / zoom / 2;
 }
 
 /**
@@ -89,7 +89,11 @@ export function finalOffset(inputSize: number, finalZoom: number): number {
 /**
  * Calculate the constant jump size per frame (rounded to ensure smooth motion).
  */
-export function constantJumpSize(inputSize: number, totalFrames: number, finalZoom: number): number {
+export function constantJumpSize(
+  inputSize: number,
+  totalFrames: number,
+  finalZoom: number,
+): number {
   const endOffset = finalOffset(inputSize, finalZoom);
   return Math.round(endOffset / totalFrames);
 }
@@ -98,7 +102,11 @@ export function constantJumpSize(inputSize: number, totalFrames: number, finalZo
  * Calculate the adjusted finalZoom that produces exactly jumpSize * totalFrames offset.
  * This ensures the zoom and position stay perfectly synchronized.
  */
-export function adjustedFinalZoom(inputSize: number, jumpSize: number, totalFrames: number): number {
+export function adjustedFinalZoom(
+  inputSize: number,
+  jumpSize: number,
+  totalFrames: number,
+): number {
   const targetOffset = jumpSize * totalFrames;
   // Solve: inputSize * (zoom - 1) / (2 * zoom) = targetOffset
   // => zoom = inputSize / (inputSize - 2 * targetOffset)
@@ -109,7 +117,11 @@ export function adjustedFinalZoom(inputSize: number, jumpSize: number, totalFram
  * Calculate the adjusted zoomRate that matches constant jump motion.
  * This keeps zoom and position perfectly synchronized.
  */
-export function adjustedZoomRate(inputSize: number, jumpSize: number, totalFrames: number): number {
+export function adjustedZoomRate(
+  inputSize: number,
+  jumpSize: number,
+  totalFrames: number,
+): number {
   const finalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
   // zoomRate such that: 1 + (zoomRate - 1) * totalFrames = finalZoom
   return 1 + (finalZoom - 1) / totalFrames;
@@ -150,7 +162,10 @@ export function linearOffsetY(
 /**
  * Check if a value is close to an integer (within tolerance).
  */
-export function isNearInteger(value: number, tolerance: number = 0.001): boolean {
+export function isNearInteger(
+  value: number,
+  tolerance: number = 0.001,
+): boolean {
   return Math.abs(value - Math.round(value)) < tolerance;
 }
 
@@ -165,7 +180,10 @@ export function isNearInteger(value: number, tolerance: number = 0.001): boolean
  * => zoom * (inputSize - 2 * targetOffset) = inputSize
  * => zoom = inputSize / (inputSize - 2 * targetOffset)
  */
-export function zoomForCenteredOffset(inputSize: number, targetOffset: number): number {
+export function zoomForCenteredOffset(
+  inputSize: number,
+  targetOffset: number,
+): number {
   return inputSize / (inputSize - 2 * targetOffset);
 }
 
@@ -194,7 +212,8 @@ export function hyperbolicZoomAtFrame(
 export function analyzeZoomForJitter(settings: ZoomSettings): string[] {
   const warnings: string[] = [];
   const totalFrames = settings.frameRate * settings.imageDurationSeconds;
-  const { width: upscaledWidth, height: upscaledHeight } = upscaledDimensions(settings);
+  const { width: upscaledWidth, height: upscaledHeight } =
+    upscaledDimensions(settings);
   const finalZoom = finalZoomLevel(settings);
 
   // Check if upscaled dimensions are integers (non-integer dimensions can cause issues)
@@ -213,7 +232,12 @@ export function analyzeZoomForJitter(settings: ZoomSettings): string[] {
 
   for (let frame = 1; frame <= totalFrames; frame++) {
     const offsetX = linearOffsetX(upscaledWidth, frame, totalFrames, finalZoom);
-    const offsetY = linearOffsetY(upscaledHeight, frame, totalFrames, finalZoom);
+    const offsetY = linearOffsetY(
+      upscaledHeight,
+      frame,
+      totalFrames,
+      finalZoom,
+    );
     jumpsX.push(offsetX - prevOffsetX);
     jumpsY.push(offsetY - prevOffsetY);
     prevOffsetX = offsetX;
@@ -225,7 +249,9 @@ export function analyzeZoomForJitter(settings: ZoomSettings): string[] {
     const prevDiff = jumpsX[i - 1] - jumpsX[i - 2];
     const currDiff = jumpsX[i] - jumpsX[i - 1];
     if ((prevDiff > 0 && currDiff < 0) || (prevDiff < 0 && currDiff > 0)) {
-      warnings.push(`Frame ${i + 1}: X jump direction changed (${jumpsX[i - 2]},${jumpsX[i - 1]},${jumpsX[i]})`);
+      warnings.push(
+        `Frame ${i + 1}: X jump direction changed (${jumpsX[i - 2]},${jumpsX[i - 1]},${jumpsX[i]})`,
+      );
     }
   }
 
@@ -233,7 +259,9 @@ export function analyzeZoomForJitter(settings: ZoomSettings): string[] {
     const prevDiff = jumpsY[i - 1] - jumpsY[i - 2];
     const currDiff = jumpsY[i] - jumpsY[i - 1];
     if ((prevDiff > 0 && currDiff < 0) || (prevDiff < 0 && currDiff > 0)) {
-      warnings.push(`Frame ${i + 1}: Y jump direction changed (${jumpsY[i - 2]},${jumpsY[i - 1]},${jumpsY[i]})`);
+      warnings.push(
+        `Frame ${i + 1}: Y jump direction changed (${jumpsY[i - 2]},${jumpsY[i - 1]},${jumpsY[i]})`,
+      );
     }
   }
 

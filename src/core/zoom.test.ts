@@ -144,7 +144,10 @@ describe("flooredOffsetX and flooredOffsetY", () => {
       // Jump should be consistent (vary by at most 1 due to floor rounding)
       if (frame > 1) {
         const variation = Math.abs(jump - prevJump);
-        assert.ok(variation <= 1, `Frame ${frame}: jump varied by ${variation} (was ${prevJump}, now ${jump})`);
+        assert.ok(
+          variation <= 1,
+          `Frame ${frame}: jump varied by ${variation} (was ${prevJump}, now ${jump})`,
+        );
       }
       prevOffset = offset;
       prevJump = jump;
@@ -175,7 +178,11 @@ describe("adjustedFinalZoom and adjustedZoomRate", () => {
 
     const zoomRate = adjustedZoomRate(inputSize, jumpSize, totalFrames);
     const computedFinalZoom = 1 + (zoomRate - 1) * totalFrames;
-    const expectedFinalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+    const expectedFinalZoom = adjustedFinalZoom(
+      inputSize,
+      jumpSize,
+      totalFrames,
+    );
 
     assert.ok(
       Math.abs(computedFinalZoom - expectedFinalZoom) < 0.0001,
@@ -278,7 +285,11 @@ describe("hyperbolicZoomAtFrame", () => {
     const totalFrames = 75;
 
     const finalZoom = hyperbolicZoomAtFrame(inputSize, jumpSize, totalFrames);
-    const expectedFinalZoom = adjustedFinalZoom(inputSize, jumpSize, totalFrames);
+    const expectedFinalZoom = adjustedFinalZoom(
+      inputSize,
+      jumpSize,
+      totalFrames,
+    );
 
     assert.ok(
       Math.abs(finalZoom - expectedFinalZoom) < 0.0001,
@@ -368,7 +379,12 @@ describe("analyzeZoomForJitter", () => {
     const jumps: number[] = [];
     let prevOffset = linearOffsetX(upscaledWidth, 0, totalFrames, finalZoom);
     for (let frame = 1; frame <= totalFrames; frame++) {
-      const offset = linearOffsetX(upscaledWidth, frame, totalFrames, finalZoom);
+      const offset = linearOffsetX(
+        upscaledWidth,
+        frame,
+        totalFrames,
+        finalZoom,
+      );
       jumps.push(offset - prevOffset);
       prevOffset = offset;
     }
@@ -408,4 +424,3 @@ describe("analyzeZoomForJitter", () => {
     );
   });
 });
-

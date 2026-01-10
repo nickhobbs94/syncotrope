@@ -3,13 +3,7 @@
  * Extracted for testability.
  */
 
-import {
-  ZoomSettings,
-  finalZoomLevel,
-  upscaledDimensions,
-  constantJumpSize,
-  adjustedFinalZoom,
-} from "./zoom";
+import { ZoomSettings, finalZoomLevel, upscaledDimensions } from "./zoom";
 
 export type ZoompanParams = {
   zoomIncrement: number;
@@ -38,10 +32,8 @@ export function calculateZoompanParams(settings: ZoomSettings): ZoompanParams {
   const jumpX = Math.round(idealOffsetX / totalFrames);
   const jumpY = Math.round(idealOffsetY / totalFrames);
 
-  // Calculate adjusted zoom that keeps zoom and position synchronized
-  const targetOffsetX = jumpX * totalFrames;
-  const adjFinalZoom = adjustedFinalZoom(upscaledW, jumpX, totalFrames);
-  const zoomIncrement = (adjFinalZoom - 1) / totalFrames;
+  // Calculate adjusted zoom increment (kept for compatibility, not used in hyperbolic formula)
+  const zoomIncrement = (userFinalZoom - 1) / totalFrames;
 
   return {
     zoomIncrement,
@@ -100,6 +92,9 @@ export function buildBlurFilter(blur: string): string {
  * @param targetWidth - Output width
  * @param targetHeight - Output height
  */
-export function buildOverlayFilter(targetWidth: number, targetHeight: number): string {
+export function buildOverlayFilter(
+  targetWidth: number,
+  targetHeight: number,
+): string {
   return `[0:v][1:v]overlay=(${targetWidth}/2)-(overlay_w/2):0,crop=${targetWidth}:${targetHeight}:0:0[outv]`;
 }

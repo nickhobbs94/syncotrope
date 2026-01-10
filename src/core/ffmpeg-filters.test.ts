@@ -38,8 +38,14 @@ describe("calculateZoompanParams", () => {
 
   it("calculates positive jump values for zoom in effect", () => {
     const params = calculateZoompanParams(defaultSettings);
-    assert.ok(params.jumpX > 0, `jumpX should be positive, got ${params.jumpX}`);
-    assert.ok(params.jumpY > 0, `jumpY should be positive, got ${params.jumpY}`);
+    assert.ok(
+      params.jumpX > 0,
+      `jumpX should be positive, got ${params.jumpX}`,
+    );
+    assert.ok(
+      params.jumpY > 0,
+      `jumpY should be positive, got ${params.jumpY}`,
+    );
   });
 
   it("calculates positive zoom increment", () => {
