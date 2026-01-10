@@ -68,15 +68,27 @@ export class Syncotrope {
 
     const DURATION = FPS * this.settings.imageDurationSeconds;
 
+    // Calculate constant jump size per frame (prevents all jitter)
+    // final_zoom = 1 + (zoomRate - 1) * DURATION
+    // final_offset = dimension * (final_zoom - 1) / (2 * final_zoom)
+    // jump_per_frame = round(final_offset / DURATION)
+    const finalZoom = 1 + (this.settings.zoomRate - 1) * DURATION;
+    const finalOffsetX = (W * finalZoom * (finalZoom - 1)) / (2 * finalZoom);
+    const finalOffsetY = (H * finalZoom * (finalZoom - 1)) / (2 * finalZoom);
+    const jumpX = Math.round(finalOffsetX / DURATION);
+    const jumpY = Math.round(finalOffsetY / DURATION);
+
     console.log("Begin making video");
 
+    // Use constant jump size: offset = jumpSize * frame_number
+    // This ensures perfectly smooth motion with no variation
     const result = await this.ffmpeg.exec([
       "-i",
       image.name,
       "-vf",
       `zoompan=z='zoom+${
         this.settings.zoomRate - 1
-      }':x='floor(iw/2-iw/zoom/2)':y='floor(ih/2-ih/zoom/2)':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
+      }':x='${jumpX}*on':y='${jumpY}*on':d=${DURATION}:fps=${FPS}:s=${W}x${H}`,
       "-c:v",
       "libx264",
       outFileName,

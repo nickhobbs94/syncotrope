@@ -8,6 +8,7 @@ import {
   centerOffsetY,
   flooredOffsetX,
   flooredOffsetY,
+  linearOffsetX,
   isNearInteger,
   analyzeZoomForJitter,
   ZoomSettings,
@@ -180,7 +181,7 @@ describe("analyzeZoomForJitter", () => {
     );
   });
 
-  // TDD TARGET: Jumps should be monotonic, not alternating back and forth
+  // Linear interpolation produces monotonic jumps (no back-and-forth)
   it("produces monotonic jumps without back-and-forth variation", () => {
     const settings: ZoomSettings = {
       zoomRate: 1.005,
@@ -191,13 +192,13 @@ describe("analyzeZoomForJitter", () => {
     };
     const { width: upscaledWidth } = upscaledDimensions(settings);
     const totalFrames = settings.frameRate * settings.imageDurationSeconds;
+    const finalZoom = finalZoomLevel(settings);
 
-    // Collect all jumps
+    // Collect all jumps using linear interpolation
     const jumps: number[] = [];
-    let prevOffset = flooredOffsetX(upscaledWidth, 1);
+    let prevOffset = linearOffsetX(upscaledWidth, 0, totalFrames, finalZoom);
     for (let frame = 1; frame <= totalFrames; frame++) {
-      const zoom = 1 + (settings.zoomRate - 1) * frame;
-      const offset = flooredOffsetX(upscaledWidth, zoom);
+      const offset = linearOffsetX(upscaledWidth, frame, totalFrames, finalZoom);
       jumps.push(offset - prevOffset);
       prevOffset = offset;
     }
@@ -213,8 +214,7 @@ describe("analyzeZoomForJitter", () => {
       }
     }
 
-    // With current floor() approach, we get many direction changes (back and forth)
-    // After fix, direction changes should be 0 (monotonic) or very few
+    // Linear interpolation with floor() produces monotonic jumps
     assert.strictEqual(
       directionChanges,
       0,
