@@ -10,7 +10,7 @@ Syncotrope is a browser-based application that converts images to videos with zo
 
 - `bun run build` - Build with webpack
 - `bun run start` - Start dev server with hot reload
-- `bun run test` - Run tests (compiles TypeScript then runs node:test)
+- `bun test` - Run tests
 - `bun run lint` - Run ESLint
 - `bun run format` - Format code with Prettier
 - `bun run code-check` - Run both ESLint and Prettier check
@@ -45,9 +45,9 @@ Key classes:
 
 ## Testing
 
-Tests use Node.js built-in test runner (`node:test`). Test files are named `*.test.ts` and located alongside source files. Run a single test file with:
+Tests use Bun's test runner with Node.js test compatibility (`node:test`). Test files are named `*.test.ts` and located alongside source files. Run a single test file with:
 ```
-bunx tsc && node --test dist/compiled/core/settings.test.js
+bun test src/core/settings.test.ts
 ```
 
 ## FFmpeg Usage

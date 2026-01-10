@@ -3,28 +3,26 @@
 Images to video.
 
 ## Prerequisites
-- Install [NVM](https://github.com/nvm-sh/nvm)
-- Install node version 20 with `nvm install 20`
+- Install [Bun](https://bun.sh/)
 
 ## Setup
 ```
 git clone git@github.com:nickhobbs94/syncotrope.git
 cd syncotrope
-nvm use
-npm install
+bun install
 ```
 
 ## Build
 ```
-npm run build
+bun run build
 ```
 
 ## Run
 ```
-npm run start
+bun run start
 ```
 
 ## Test
 ```
-npm run test
+bun test
 ```
