@@ -12,8 +12,11 @@
 <body>
   <h1>Syncotrope</h1>
   <p><input type="file" id="uploader" multiple></p>
-  <p id="message"></p>
-  <progress id="progressBar" value="0" max="100"></progress>
+  <div id="status-container">
+    <p id="status-message"></p>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <button id="download-button" style="display: none;">Download Video</button>
+  </div>
   <div id="footer">
     <p><a href="https://github.com/nickhobbs94/syncotrope">Github repo</a></p>
   </div>
