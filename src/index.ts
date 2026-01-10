@@ -27,17 +27,28 @@ const processFiles = async (event: Event) => {
   const mimeType = getMimeType(settings.outputFormat);
   const outputFilename = `output.${settings.outputFormat}`;
 
-  for (const file of files) {
-    setProgress(0.1);
+  const videoDataList: Uint8Array[] = [];
+  const totalFiles = files.length;
+
+  // Process each image into a video clip
+  for (let i = 0; i < totalFiles; i++) {
+    const file = files[i];
+    const progressBase = (i / totalFiles) * 90; // Reserve 10% for concatenation
+    setProgress(progressBase + 1);
 
     // Convert File to Uint8Array and process with the simplified API
     const imageData = await fetchFile(file);
     const videoData = await syncotrope.processImage(imageData);
-
-    setProgress(100);
-
-    downloadBuffer(videoData, outputFilename, mimeType);
+    videoDataList.push(videoData);
   }
+
+  // Concatenate all videos if there are multiple
+  setProgress(92);
+  const finalVideo = await syncotrope.concatenateVideos(videoDataList);
+
+  setProgress(100);
+
+  downloadBuffer(finalVideo, outputFilename, mimeType);
 };
 
 export function setup() {
