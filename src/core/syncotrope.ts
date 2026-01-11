@@ -111,7 +111,8 @@ export class Syncotrope implements ISyncotrope {
     ]);
 
     if (result !== 0) {
-      throw new Error("Error from video making");
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg video creation failed:\n${logs}`);
     }
 
     console.log(`Video made, saved under ${outFileName}`);
@@ -165,7 +166,8 @@ export class Syncotrope implements ISyncotrope {
     ]);
 
     if (result !== 0) {
-      throw new Error("Error from scaleImage");
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg scale failed:\n${logs}`);
     }
 
     return { name: outFileName };
@@ -197,7 +199,8 @@ export class Syncotrope implements ISyncotrope {
     ]);
 
     if (result !== 0) {
-      throw new Error("Error from overlay");
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg overlay failed:\n${logs}`);
     }
 
     return { name: outFileName };
@@ -218,7 +221,8 @@ export class Syncotrope implements ISyncotrope {
     ]);
 
     if (result !== 0) {
-      throw new Error("Error from blur");
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg blur failed:\n${logs}`);
     }
     return { name: outFileName };
   }
@@ -269,7 +273,8 @@ export class Syncotrope implements ISyncotrope {
     ]);
 
     if (result !== 0) {
-      throw new Error("Error from video concatenation");
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg concatenation failed:\n${logs}`);
     }
 
     console.log(`Videos concatenated, saved under ${outFileName}`);
