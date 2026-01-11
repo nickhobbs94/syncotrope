@@ -23,6 +23,7 @@ import {
 } from "./ui/file-list";
 
 declare const FFmpegWASM: { FFmpeg: typeof FFmpegClass };
+declare const __GIT_HASH__: string;
 const { FFmpeg } = FFmpegWASM;
 
 const syncotrope = new Syncotrope(new FFmpeg());
@@ -86,6 +87,11 @@ export function setup() {
 
   setupDownloadButton(downloadBuffer);
   setupSettingsSidebar();
+
+  const versionElement = document.getElementById("version");
+  if (versionElement) {
+    versionElement.textContent = __GIT_HASH__;
+  }
 }
 
 setup();

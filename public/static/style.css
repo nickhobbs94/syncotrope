@@ -372,3 +372,12 @@ progress::-moz-progress-bar {
 #download-button:hover {
     background-color: #2ecc71;
 }
+
+/* Version display */
+#version {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 0.75rem;
+    color: #666;
+}

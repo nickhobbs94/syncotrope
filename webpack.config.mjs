@@ -1,7 +1,11 @@
 import path from 'path';
+import { execSync } from 'child_process';
+import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { fileURLToPath } from 'url';
+
+const gitHash = execSync('git rev-parse --short HEAD').toString().trim();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -27,6 +31,9 @@ export default {
         clean: true
     },
     plugins: [
+        new webpack.DefinePlugin({
+            __GIT_HASH__: JSON.stringify(gitHash),
+        }),
         new HtmlWebpackPlugin({
             title: 'Syncotrope',
             template: './public/index.html'
