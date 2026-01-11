@@ -11,7 +11,13 @@
 
 <body>
   <h1>Syncotrope</h1>
-  <p><input type="file" id="uploader" multiple></p>
+  <p><input type="file" id="uploader" multiple accept="image/*"></p>
+  <div id="file-list-container" style="display: none;">
+    <h3>Selected Files</h3>
+    <p class="hint">Drag to reorder, or use arrow buttons</p>
+    <ul id="file-list"></ul>
+    <button id="start-processing">Start Processing</button>
+  </div>
   <div id="status-container">
     <p id="status-message"></p>
     <progress id="progressBar" value="0" max="100"></progress>
