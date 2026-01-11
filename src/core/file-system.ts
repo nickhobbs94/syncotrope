@@ -8,6 +8,8 @@ export type FileReference = {
 
 export class FileSystemHandler {
   private initialized = false;
+  private recentLogs: string[] = [];
+  private readonly maxLogs = 20;
 
   constructor(
     private ffmpeg: FFmpeg,
@@ -15,12 +17,26 @@ export class FileSystemHandler {
     private progressHook: (s: string) => void,
   ) {}
 
+  public getRecentLogs(): string[] {
+    return [...this.recentLogs];
+  }
+
+  public clearLogs(): void {
+    this.recentLogs = [];
+  }
+
   // always call this before trying to do any work
   public async init() {
     if (this.initialized) return;
     this.initialized = true;
 
     this.ffmpeg.on("log", ({ message }) => {
+      // Store recent logs for error reporting
+      this.recentLogs.push(message);
+      if (this.recentLogs.length > this.maxLogs) {
+        this.recentLogs.shift();
+      }
+
       if (this.settings.logging.includes("ffmpeg")) {
         console.log(message);
       }
