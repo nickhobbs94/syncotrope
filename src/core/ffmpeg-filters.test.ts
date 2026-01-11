@@ -5,6 +5,7 @@ import {
   buildZoompanFilter,
   zoompanFilterFromSettings,
   buildScaleFilter,
+  buildCoverScaleFilter,
   buildBlurFilter,
   buildOverlayFilter,
   buildConcatList,
@@ -159,6 +160,23 @@ describe("buildScaleFilter", () => {
   it("supports -1 for width with fixed height", () => {
     const filter = buildScaleFilter(-1, 1080);
     assert.strictEqual(filter, "scale=-1:1080");
+  });
+});
+
+describe("buildCoverScaleFilter", () => {
+  it("builds conditional scale filter for cover behavior", () => {
+    const filter = buildCoverScaleFilter(1920, 1080);
+    // Should use conditional to scale by height for wide images, by width for tall images
+    assert.ok(filter.includes("if(gt(iw/ih,1920/1080)"));
+    assert.ok(filter.includes("1920"));
+    assert.ok(filter.includes("1080"));
+  });
+
+  it("generates valid FFmpeg scale filter syntax", () => {
+    const filter = buildCoverScaleFilter(1920, 1080);
+    assert.ok(filter.startsWith("scale="));
+    assert.ok(filter.includes("w="));
+    assert.ok(filter.includes("h="));
   });
 });
 

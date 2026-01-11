@@ -80,6 +80,17 @@ export function buildScaleFilter(width: number, height: number): string {
 }
 
 /**
+ * Build scale filter that covers the target area (no letterboxing).
+ * Scales to fill both dimensions, potentially overflowing one dimension.
+ * Use this for backgrounds that need to fill the entire frame.
+ */
+export function buildCoverScaleFilter(width: number, height: number): string {
+  // Scale to cover: if wider than target ratio, scale by height; otherwise scale by width
+  // This ensures the result is at least as large as target in both dimensions
+  return `scale=w='if(gt(iw/ih,${width}/${height}),-1,${width})':h='if(gt(iw/ih,${width}/${height}),${height},-1)'`;
+}
+
+/**
  * Build boxblur filter string.
  * @param blur - Blur parameter in format "radius:power" (e.g., "50:10")
  */
