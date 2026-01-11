@@ -2,6 +2,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { fileURLToPath } from 'url';
 
@@ -19,6 +20,10 @@ export default {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/
+            },
+            {
+                test: /\.css$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
             }
         ]
     },
@@ -34,15 +39,17 @@ export default {
         new webpack.DefinePlugin({
             __GIT_HASH__: JSON.stringify(gitHash),
         }),
+        new MiniCssExtractPlugin({
+            filename: 'style.[contenthash].css',
+        }),
         new HtmlWebpackPlugin({
             title: 'Syncotrope',
             template: './public/index.html'
         }),
-        // Add this to copy everything from the 'public' directory
         new CopyPlugin({
             patterns: [
                 { from: './node_modules/@ffmpeg', to: 'assets' },
-                { from: './public/static' },
+                { from: './public/static/favicon.ico', to: 'favicon.ico' },
             ]
         })
     ],

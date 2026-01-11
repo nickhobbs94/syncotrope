@@ -3,6 +3,7 @@
  * Wires together UI components and processing pipeline.
  */
 
+import "../public/static/style.css";
 import { downloadBuffer } from "./util/buffer-download";
 import { Syncotrope } from "./core/syncotrope";
 import type { FFmpeg as FFmpegClass } from "@ffmpeg/ffmpeg";
