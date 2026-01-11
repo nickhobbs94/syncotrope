@@ -225,3 +225,48 @@ progress::-moz-progress-bar {
     margin-right: 10px;
     vertical-align: middle;
 }
+
+/* Status container styling */
+#status-container {
+    margin: 20px auto;
+    text-align: center;
+}
+
+#status-message {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    min-height: 1.5em;
+}
+
+#status-message.status-info {
+    color: #3498db;
+}
+
+#status-message.status-success {
+    color: #27ae60;
+}
+
+#status-message.status-error {
+    color: #e74c3c;
+}
+
+#status-message.status-processing {
+    color: #f39c12;
+}
+
+#download-button {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    background-color: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+#download-button:hover {
+    background-color: #2ecc71;
+}
