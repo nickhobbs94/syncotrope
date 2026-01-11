@@ -6,6 +6,7 @@ import { finalZoomLevel } from "./zoom";
 import {
   zoompanFilterFromSettings,
   buildScaleFilter,
+  buildCoverScaleFilter,
   buildBlurFilter,
   buildOverlayFilter,
   buildConcatList,
@@ -64,20 +65,22 @@ export class Syncotrope implements ISyncotrope {
   }
 
   private async standardizeImage(file: FileReference): Promise<FileReference> {
-    const fillHorizontalImage = await this.scaleImage(
+    // Scale background to cover target area (handles both wide and tall images)
+    const backgroundImage = await this.scaleToCover(
       file,
       this.settings.targetWidth,
-      -1,
+      this.settings.targetHeight,
     );
 
-    const fillVertImage = await this.scaleImage(
+    // Scale foreground to fit height (will be centered horizontally)
+    const foregroundImage = await this.scaleImage(
       file,
       -1,
       this.settings.targetHeight,
     );
 
-    const blurredImg = await this.blurImage(fillHorizontalImage);
-    const overlaidImage = await this.overlayImage(blurredImg, fillVertImage);
+    const blurredImg = await this.blurImage(backgroundImage);
+    const overlaidImage = await this.overlayImage(blurredImg, foregroundImage);
 
     // upscale the final image to avoid jitter
     const finalZoom = finalZoomLevel(this.settings);
@@ -168,6 +171,35 @@ export class Syncotrope implements ISyncotrope {
     if (result !== 0) {
       const logs = this.fs.getRecentLogs().join("\n");
       throw new Error(`FFmpeg scale failed:\n${logs}`);
+    }
+
+    return { name: outFileName };
+  }
+
+  // Scale an image to cover the target dimensions (no letterboxing)
+  private async scaleToCover(
+    file: FileReference,
+    targetWidth: number,
+    targetHeight: number,
+  ): Promise<FileReference> {
+    const outFileName = `cover-output-${new Date().getTime().toString()}.png`;
+
+    const scaleFilter = buildCoverScaleFilter(targetWidth, targetHeight);
+    console.log(`Cover scaling image with setting: ${scaleFilter}`);
+
+    const result = await this.ffmpeg.exec([
+      "-i",
+      file.name,
+      "-vf",
+      scaleFilter,
+      "-c:a",
+      "copy",
+      outFileName,
+    ]);
+
+    if (result !== 0) {
+      const logs = this.fs.getRecentLogs().join("\n");
+      throw new Error(`FFmpeg cover scale failed:\n${logs}`);
     }
 
     return { name: outFileName };
