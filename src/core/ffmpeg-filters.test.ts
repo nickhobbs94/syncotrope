@@ -311,6 +311,127 @@ describe("settings to filter integration", () => {
   });
 });
 
+describe("error paths and boundary conditions", () => {
+  it("calculateZoompanParams with zoomRate 1.0 produces 0 jumps", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      zoomRate: 1.0,
+    };
+    const params = calculateZoompanParams(settings);
+    assert.strictEqual(params.jumpX, 0);
+    assert.strictEqual(params.jumpY, 0);
+    assert.strictEqual(params.zoomIncrement, 0);
+  });
+
+  it("calculateZoompanParams with 0 frameRate produces 0 duration", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      frameRate: 0,
+    };
+    const params = calculateZoompanParams(settings);
+    assert.strictEqual(params.duration, 0);
+    assert.strictEqual(params.fps, 0);
+  });
+
+  it("calculateZoompanParams with 0 imageDurationSeconds produces 0 duration", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      imageDurationSeconds: 0,
+    };
+    const params = calculateZoompanParams(settings);
+    assert.strictEqual(params.duration, 0);
+  });
+
+  it("calculateZoompanParams with very large zoom rate", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      zoomRate: 2.0,
+    };
+    const params = calculateZoompanParams(settings);
+    assert.ok(Number.isFinite(params.jumpX));
+    assert.ok(Number.isFinite(params.jumpY));
+    assert.ok(params.jumpX > 0);
+  });
+
+  it("buildZoompanFilter with jumpX 0 creates division-by-zero in zoom formula", () => {
+    const params: ZoompanParams = {
+      zoomIncrement: 0,
+      jumpX: 0,
+      jumpY: 0,
+      duration: 75,
+      fps: 25,
+      width: 1920,
+      height: 1080,
+    };
+    const filter = buildZoompanFilter(params);
+    // z='iw/(iw-2*0*on)' simplifies to z='iw/iw' = 1 (no zoom), which is valid
+    assert.ok(filter.includes("z='iw/(iw-2*0*on)'"));
+    assert.ok(filter.includes("x='0*on'"));
+    assert.ok(filter.includes("y='0*on'"));
+  });
+
+  it("buildZoompanFilter with 0 duration", () => {
+    const params: ZoompanParams = {
+      zoomIncrement: 0.005,
+      jumpX: 10,
+      jumpY: 6,
+      duration: 0,
+      fps: 25,
+      width: 1920,
+      height: 1080,
+    };
+    const filter = buildZoompanFilter(params);
+    assert.ok(filter.includes("d=0"));
+  });
+
+  it("buildScaleFilter with 0 dimensions", () => {
+    const filter = buildScaleFilter(0, 0);
+    assert.strictEqual(filter, "scale=0:0");
+  });
+
+  it("buildBlurFilter with empty string", () => {
+    const filter = buildBlurFilter("");
+    assert.strictEqual(filter, "boxblur=");
+  });
+
+  it("buildOverlayFilter with 0 dimensions", () => {
+    const filter = buildOverlayFilter(0, 0);
+    assert.ok(filter.includes("(0/2)-(overlay_w/2)"));
+    assert.ok(filter.includes("crop=0:0:0:0"));
+  });
+
+  it("zoompanFilterFromSettings with 0 frameRate does not throw", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      frameRate: 0,
+    };
+    // Should not throw even with degenerate input
+    const filter = zoompanFilterFromSettings(settings);
+    assert.ok(filter.startsWith("zoompan="));
+  });
+
+  it("calculateZoompanParams with 1x1 resolution", () => {
+    const settings: ZoomSettings = {
+      ...defaultSettings,
+      targetWidth: 1,
+      targetHeight: 1,
+    };
+    const params = calculateZoompanParams(settings);
+    assert.strictEqual(params.width, 1);
+    assert.strictEqual(params.height, 1);
+    assert.ok(Number.isFinite(params.jumpX));
+  });
+
+  it("calculateZoompanParams jump values consistent with X and Y", () => {
+    // For 16:9, jumpY should be smaller than jumpX
+    const params = calculateZoompanParams(defaultSettings);
+    assert.ok(
+      params.jumpY <= params.jumpX,
+      `jumpY (${params.jumpY}) should be <= jumpX (${params.jumpX}) for 16:9`,
+    );
+  });
+});
+
 describe("buildConcatList", () => {
   it("builds correct format for single file", () => {
     const list = buildConcatList(["video1.mp4"]);
