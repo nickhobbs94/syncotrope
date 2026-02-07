@@ -345,6 +345,167 @@ describe("isNearInteger", () => {
   });
 });
 
+describe("error paths and boundary conditions", () => {
+  it("zoomAtFrame with zoomRate 1.0 (no zoom) always returns 1", () => {
+    assert.strictEqual(zoomAtFrame(0, 1.0), 1.0);
+    assert.strictEqual(zoomAtFrame(50, 1.0), 1.0);
+    assert.strictEqual(zoomAtFrame(1000, 1.0), 1.0);
+  });
+
+  it("zoomAtFrame with negative frame returns zoom less than 1", () => {
+    assert.ok(zoomAtFrame(-1, 1.005) < 1.0);
+    assert.ok(zoomAtFrame(-10, 1.005) < 1.0);
+  });
+
+  it("centerOffsetX/Y returns 0 when zoom is exactly 1", () => {
+    assert.strictEqual(centerOffsetX(2640, 1), 0);
+    assert.strictEqual(centerOffsetY(1485, 1), 0);
+  });
+
+  it("centerOffsetX/Y returns Infinity when zoom is 0", () => {
+    // Division by zero: iw/2 - iw/0/2 → -Infinity
+    const result = centerOffsetX(2640, 0);
+    assert.ok(
+      !Number.isFinite(result),
+      `Expected non-finite result, got ${result}`,
+    );
+  });
+
+  it("centerOffsetX/Y with negative zoom produces negative offset", () => {
+    const result = centerOffsetX(2640, -1);
+    // iw/2 - iw/(-1)/2 = 1320 - (-1320) = 2640
+    assert.strictEqual(result, 2640);
+  });
+
+  it("zoomForCenteredOffset with offset approaching half inputSize causes division by zero", () => {
+    // zoom = inputSize / (inputSize - 2*targetOffset)
+    // When targetOffset = inputSize/2, denominator is 0
+    const result = zoomForCenteredOffset(2640, 1320);
+    assert.ok(!Number.isFinite(result), `Expected Infinity, got ${result}`);
+  });
+
+  it("zoomForCenteredOffset with offset exceeding half inputSize produces negative zoom", () => {
+    const result = zoomForCenteredOffset(2640, 1400);
+    assert.ok(result < 0, `Expected negative zoom, got ${result}`);
+  });
+
+  it("hyperbolicZoomAtFrame with jumpSize 0 always returns 1", () => {
+    assert.strictEqual(hyperbolicZoomAtFrame(2640, 0, 0), 1);
+    assert.strictEqual(hyperbolicZoomAtFrame(2640, 0, 50), 1);
+    assert.strictEqual(hyperbolicZoomAtFrame(2640, 0, 100), 1);
+  });
+
+  it("constantJumpSize with totalFrames 0 returns NaN or Infinity", () => {
+    const result = constantJumpSize(2640, 0, 1.375);
+    assert.ok(
+      !Number.isFinite(result) || Number.isNaN(result),
+      `Expected non-finite result for 0 frames, got ${result}`,
+    );
+  });
+
+  it("constantJumpSize with finalZoom 1.0 returns 0 (no motion)", () => {
+    assert.strictEqual(constantJumpSize(2640, 75, 1.0), 0);
+  });
+
+  it("finalZoomLevel with 0 duration returns 1 (no zoom)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 0,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    assert.strictEqual(finalZoomLevel(settings), 1.0);
+  });
+
+  it("finalZoomLevel with 0 frameRate returns 1 (no frames)", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 0,
+      imageDurationSeconds: 3,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    assert.strictEqual(finalZoomLevel(settings), 1.0);
+  });
+
+  it("upscaledDimensions with 0 duration equals target dimensions", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 0,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    const dims = upscaledDimensions(settings);
+    // finalZoom = 1.0, so upscaled = target * 1.0
+    assert.strictEqual(dims.width, 1920);
+    assert.strictEqual(dims.height, 1080);
+  });
+
+  it("linearOffsetX with 0 totalFrames produces non-finite result", () => {
+    const result = linearOffsetX(2640, 5, 0, 1.375);
+    // constantJumpSize divides by 0 → Infinity, then Infinity * 5 = Infinity
+    assert.ok(
+      !Number.isFinite(result),
+      `Expected non-finite result, got ${result}`,
+    );
+  });
+
+  it("adjustedFinalZoom with 0 totalFrames produces 1 (no motion)", () => {
+    // targetOffset = jumpSize * 0 = 0
+    // zoom = inputSize / (inputSize - 0) = 1
+    assert.strictEqual(adjustedFinalZoom(2640, 5, 0), 1);
+  });
+
+  it("adjustedZoomRate with 0 totalFrames produces NaN", () => {
+    // finalZoom = 1, zoomRate = 1 + (1-1)/0 = 1 + 0/0 = NaN
+    const result = adjustedZoomRate(2640, 5, 0);
+    assert.ok(Number.isNaN(result), `Expected NaN, got ${result}`);
+  });
+
+  it("isNearInteger with NaN returns false", () => {
+    assert.ok(!isNearInteger(NaN));
+  });
+
+  it("isNearInteger with Infinity returns false", () => {
+    assert.ok(!isNearInteger(Infinity));
+    assert.ok(!isNearInteger(-Infinity));
+  });
+
+  it("isNearInteger with very small tolerance is near-strict", () => {
+    // tolerance uses strict < so tolerance=0 means abs diff must be < 0, which is never true
+    assert.ok(isNearInteger(5.0, 1e-15));
+    assert.ok(!isNearInteger(5.01, 1e-15));
+  });
+
+  it("analyzeZoomForJitter with 0 duration produces no warnings", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.005,
+      frameRate: 25,
+      imageDurationSeconds: 0,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    // 0 frames → no jitter possible
+    const warnings = analyzeZoomForJitter(settings);
+    assert.strictEqual(warnings.length, 0);
+  });
+
+  it("analyzeZoomForJitter with very high zoom rate", () => {
+    const settings: ZoomSettings = {
+      zoomRate: 1.05,
+      frameRate: 25,
+      imageDurationSeconds: 3,
+      targetWidth: 1920,
+      targetHeight: 1080,
+    };
+    // Should still not crash
+    const warnings = analyzeZoomForJitter(settings);
+    assert.ok(Array.isArray(warnings));
+  });
+});
+
 describe("edge cases", () => {
   it("handles very small zoom rate (1.001)", () => {
     const settings: ZoomSettings = {
