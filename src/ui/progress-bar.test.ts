@@ -95,13 +95,19 @@ describe("calculateProgress error paths", () => {
   it("returns Infinity when frameRate is 0 (division by zero)", () => {
     const settings = { frameRate: 0, imageDurationSeconds: 4 };
     const progress = calculateProgress(50, settings);
-    assert.ok(!Number.isFinite(progress), `Expected non-finite, got ${progress}`);
+    assert.ok(
+      !Number.isFinite(progress),
+      `Expected non-finite, got ${progress}`,
+    );
   });
 
   it("returns Infinity when imageDurationSeconds is 0 (division by zero)", () => {
     const settings = { frameRate: 25, imageDurationSeconds: 0 };
     const progress = calculateProgress(50, settings);
-    assert.ok(!Number.isFinite(progress), `Expected non-finite, got ${progress}`);
+    assert.ok(
+      !Number.isFinite(progress),
+      `Expected non-finite, got ${progress}`,
+    );
   });
 
   it("returns NaN when both frameRate and imageDurationSeconds are 0", () => {
@@ -125,8 +131,17 @@ describe("calculateProgress error paths", () => {
   });
 
   it("returns exactly 0 for frame 0 regardless of settings", () => {
-    assert.strictEqual(calculateProgress(0, { frameRate: 1, imageDurationSeconds: 1 }), 0);
-    assert.strictEqual(calculateProgress(0, { frameRate: 60, imageDurationSeconds: 10 }), 0);
-    assert.strictEqual(calculateProgress(0, { frameRate: 25, imageDurationSeconds: 3 }), 0);
+    assert.strictEqual(
+      calculateProgress(0, { frameRate: 1, imageDurationSeconds: 1 }),
+      0,
+    );
+    assert.strictEqual(
+      calculateProgress(0, { frameRate: 60, imageDurationSeconds: 10 }),
+      0,
+    );
+    assert.strictEqual(
+      calculateProgress(0, { frameRate: 25, imageDurationSeconds: 3 }),
+      0,
+    );
   });
 });

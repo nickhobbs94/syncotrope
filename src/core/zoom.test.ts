@@ -365,7 +365,10 @@ describe("error paths and boundary conditions", () => {
   it("centerOffsetX/Y returns Infinity when zoom is 0", () => {
     // Division by zero: iw/2 - iw/0/2 → -Infinity
     const result = centerOffsetX(2640, 0);
-    assert.ok(!Number.isFinite(result), `Expected non-finite result, got ${result}`);
+    assert.ok(
+      !Number.isFinite(result),
+      `Expected non-finite result, got ${result}`,
+    );
   });
 
   it("centerOffsetX/Y with negative zoom produces negative offset", () => {
@@ -394,8 +397,10 @@ describe("error paths and boundary conditions", () => {
 
   it("constantJumpSize with totalFrames 0 returns NaN or Infinity", () => {
     const result = constantJumpSize(2640, 0, 1.375);
-    assert.ok(!Number.isFinite(result) || Number.isNaN(result),
-      `Expected non-finite result for 0 frames, got ${result}`);
+    assert.ok(
+      !Number.isFinite(result) || Number.isNaN(result),
+      `Expected non-finite result for 0 frames, got ${result}`,
+    );
   });
 
   it("constantJumpSize with finalZoom 1.0 returns 0 (no motion)", () => {
@@ -441,7 +446,10 @@ describe("error paths and boundary conditions", () => {
   it("linearOffsetX with 0 totalFrames produces non-finite result", () => {
     const result = linearOffsetX(2640, 5, 0, 1.375);
     // constantJumpSize divides by 0 → Infinity, then Infinity * 5 = Infinity
-    assert.ok(!Number.isFinite(result), `Expected non-finite result, got ${result}`);
+    assert.ok(
+      !Number.isFinite(result),
+      `Expected non-finite result, got ${result}`,
+    );
   });
 
   it("adjustedFinalZoom with 0 totalFrames produces 1 (no motion)", () => {
