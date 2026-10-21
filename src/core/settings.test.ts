@@ -15,16 +15,16 @@ describe("Default settings", () => {
     assert.strictEqual(populateDefaults({}).targetBlur, "50:10");
   });
 
-  it("default zoom rate is 1.005", () => {
-    assert.strictEqual(populateDefaults({}).zoomRate, 1.005);
+  it("default zoom speed is 1% per second", () => {
+    assert.strictEqual(populateDefaults({}).zoomSpeed, 1);
   });
 
   it("default frame rate is 25", () => {
     assert.strictEqual(populateDefaults({}).frameRate, 25);
   });
 
-  it("default image duration is 3 seconds", () => {
-    assert.strictEqual(populateDefaults({}).imageDurationSeconds, 3);
+  it("default image duration is 10 seconds", () => {
+    assert.strictEqual(populateDefaults({}).imageDurationSeconds, 10);
   });
 
   it("default logging is empty", () => {
@@ -50,8 +50,8 @@ describe("Default settings", () => {
     assert.strictEqual(settings.targetHeight, 720);
     assert.strictEqual(settings.frameRate, 30);
     // Non-overridden values should remain defaults
-    assert.strictEqual(settings.zoomRate, 1.005);
-    assert.strictEqual(settings.imageDurationSeconds, 3);
+    assert.strictEqual(settings.zoomSpeed, 1);
+    assert.strictEqual(settings.imageDurationSeconds, 10);
   });
 
   it("can enable logging flags", () => {

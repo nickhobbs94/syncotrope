@@ -57,6 +57,9 @@ export class Syncotrope implements ISyncotrope {
     if (width % 2 || height % 2) {
       throw new Error("Width and height must be even numbers");
     }
+    if (!(this.settings.zoomSpeed >= 0)) {
+      throw new Error("Zoom speed must be 0 or more percent per second");
+    }
     const sigma = boxBlurSigma(parseBoxBlur(this.settings.targetBlur));
 
     const plan = await pickEncoder(
@@ -86,7 +89,7 @@ export class Syncotrope implements ISyncotrope {
       for (let i = 0; i < files.length; i++) {
         await this.loadImage(renderer, files[i], i, sigma, finalZoom);
         for (let frame = 0; frame < frames; frame++) {
-          renderer.draw(zoomAtFrame(frame, this.settings.zoomRate));
+          renderer.draw(zoomAtFrame(frame, this.settings.zoomSpeed, frameRate));
           // A keyframe at the start of each image keeps the cuts crisp
           await writer.addFrame(renderer.canvas, frame === 0);
           onProgress?.(i, i * frames + frame + 1, total);

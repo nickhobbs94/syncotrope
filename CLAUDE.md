@@ -38,7 +38,7 @@ Key modules:
 
 User-configurable options (in `settings.ts`):
 - Resolution (width/height)
-- Zoom rate
+- Zoom speed (percent the image grows by per second)
 - Blur amount (FFmpeg boxblur style "radius:power", converted to the equivalent Gaussian)
 - Frame rate
 - Image duration
@@ -72,7 +72,7 @@ Key test files:
 
 ## Zoom Implementation
 
-Each frame is resampled once, straight from the original image, by a two-pass (horizontal, then vertical) Lanczos-3 shader in `renderer.ts`. The zoom is a pure float scale about the frame centre, so it never steps by whole pixels and never drifts. The zoom level at frame n is `1 + (zoomRate - 1) * n`.
+Each frame is resampled once, straight from the original image, by a two-pass (horizontal, then vertical) Lanczos-3 shader in `renderer.ts`. The zoom is a pure float scale about the frame centre, so it never steps by whole pixels and never drifts. The zoom is exponential (`(1 + zoomSpeed / 100) ^ seconds`), so it looks equally fast throughout and doesn't depend on the frame rate.
 
 Don't go back to scaling an intermediate image or to canvas `drawImage` scaling: both soften fine detail such as film grain unevenly from frame to frame, which looks like shimmering or warping. Don't use FFmpeg's `zoompan` either: it only crops whole pixels, so slow zooms judder.
 
