@@ -1,32 +1,6 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert";
-import { parseFrameFromLog, calculateProgress } from "./progress-bar.js";
-
-describe("parseFrameFromLog", () => {
-  it("parses frame number from typical FFmpeg output", () => {
-    assert.strictEqual(parseFrameFromLog("frame=   42 fps=25"), 42);
-  });
-
-  it("parses frame number without leading spaces", () => {
-    assert.strictEqual(parseFrameFromLog("frame=100 fps=30"), 100);
-  });
-
-  it("parses frame number with many leading spaces", () => {
-    assert.strictEqual(parseFrameFromLog("frame=    5 fps=25"), 5);
-  });
-
-  it("returns null for non-frame log messages", () => {
-    assert.strictEqual(parseFrameFromLog("Input #0, png_pipe"), null);
-  });
-
-  it("returns null for empty string", () => {
-    assert.strictEqual(parseFrameFromLog(""), null);
-  });
-
-  it("returns null when frame appears mid-line", () => {
-    assert.strictEqual(parseFrameFromLog("  frame=42 fps=25"), null);
-  });
-});
+import { calculateProgress } from "./progress-bar.js";
 
 describe("calculateProgress", () => {
   it("calculates 0% at frame 0", () => {

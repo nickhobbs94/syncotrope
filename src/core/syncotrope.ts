@@ -1,32 +1,34 @@
-import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import { SyncotropeSettings, getSettings } from "./settings";
-import { updateProgressFromFFmpegLog } from "../ui/progress-bar";
-import { FileReference, FileSystemHandler } from "./file-system";
-import { finalZoomLevel } from "./zoom";
+import { finalZoomLevel, framesPerImage, zoomAtFrame } from "./zoom";
+import { boxBlurSigma, parseBoxBlur } from "./blur";
 import {
-  zoompanFilterFromSettings,
-  buildScaleFilter,
-  buildCoverScaleFilter,
-  buildBlurFilter,
-  buildOverlayFilter,
-  buildConcatList,
-} from "./ffmpeg-filters";
+  createRenderer,
+  makeBackground,
+  prepareSource,
+  type FrameRenderer,
+} from "./renderer";
+import { pickEncoder, VideoWriter } from "./encoder";
+
+export type FrameProgress = (
+  imageIndex: number,
+  framesDone: number,
+  framesTotal: number,
+) => void;
 
 export interface ISyncotrope {
   loadSettings(): void;
 
-  processImages(files: Uint8Array[]): Promise<Uint8Array>;
+  processImages(
+    files: Uint8Array[],
+    onProgress?: FrameProgress,
+  ): Promise<Uint8Array>;
 }
 
 export class Syncotrope implements ISyncotrope {
   private settings: SyncotropeSettings;
-  private fs: FileSystemHandler;
 
-  constructor(private ffmpeg: FFmpeg) {
+  constructor() {
     this.settings = getSettings();
-    this.fs = new FileSystemHandler(this.ffmpeg, this.settings, (m) =>
-      updateProgressFromFFmpegLog(m, this.settings),
-    );
   }
 
   public loadSettings() {
@@ -34,283 +36,97 @@ export class Syncotrope implements ISyncotrope {
   }
 
   /**
-   * Process multiple images into a single concatenated video.
+   * Process images into a single video, one zoom clip per image in order.
+   * Takes raw image data and returns the video file data.
    */
-  public async processImages(files: Uint8Array[]): Promise<Uint8Array> {
+  public async processImages(
+    files: Uint8Array[],
+    onProgress?: FrameProgress,
+  ): Promise<Uint8Array> {
     if (files.length === 0) {
       throw new Error("No files provided");
     }
 
-    const videos: Uint8Array[] = [];
-    for (const file of files) {
-      const video = await this.processImage(file);
-      videos.push(video);
+    const {
+      targetWidth: width,
+      targetHeight: height,
+      frameRate,
+      outputFormat,
+      videoQuality,
+    } = this.settings;
+    if (width % 2 || height % 2) {
+      throw new Error("Width and height must be even numbers");
+    }
+    const sigma = boxBlurSigma(parseBoxBlur(this.settings.targetBlur));
+
+    const plan = await pickEncoder(
+      outputFormat,
+      width,
+      height,
+      frameRate,
+      videoQuality,
+    );
+    if (!plan) {
+      throw new Error(
+        `This browser can't encode ${outputFormat.toUpperCase()} video at ${width}x${height}, ${frameRate} fps. Try a smaller resolution, the other format, or a recent Chrome, Edge, Firefox or Safari.`,
+      );
     }
 
-    return this.concatenateVideos(videos);
-  }
-
-  /**
-   * Process a single image into a video with zoom effect.
-   * This is the main public API - takes raw image data and returns video data.
-   */
-  public async processImage(imageData: Uint8Array): Promise<Uint8Array> {
-    const inputName = `input-${Date.now()}.png`;
-    const inputRef = await this.fs.putFile(inputName, imageData);
-
-    const standardized = await this.standardizeImage(inputRef);
-    const videoRef = await this.combinedZoomAndVideo(standardized);
-
-    return this.fs.getFile(videoRef.name);
-  }
-
-  private async standardizeImage(file: FileReference): Promise<FileReference> {
-    // Scale background to cover target area (handles both wide and tall images)
-    const backgroundImage = await this.scaleToCover(
-      file,
-      this.settings.targetWidth,
-      this.settings.targetHeight,
-    );
-
-    // Scale foreground to fit height (will be centered horizontally)
-    const foregroundImage = await this.scaleImage(
-      file,
-      -1,
-      this.settings.targetHeight,
-    );
-
-    const blurredImg = await this.blurImage(backgroundImage);
-    const overlaidImage = await this.overlayImage(blurredImg, foregroundImage);
-
-    // upscale the final image to avoid jitter
+    const frames = framesPerImage(this.settings);
     const finalZoom = finalZoomLevel(this.settings);
-    return await this.scaleImage(
-      overlaidImage,
-      this.settings.targetWidth * finalZoom,
-      this.settings.targetHeight * finalZoom,
+    const total = frames * files.length;
+    const writer = new VideoWriter(outputFormat, plan, frameRate);
+    const renderer = createRenderer(width, height);
+    console.log(
+      `Rendering with ${renderer.kind}, encoding ${plan.config.codec}` +
+        (plan.quantizer !== null ? ` at quantizer ${plan.quantizer}` : ""),
     );
-  }
 
-  private async combinedZoomAndVideo(
-    image: FileReference,
-  ): Promise<FileReference> {
-    const format = this.settings.outputFormat;
-    const outFileName = `video-output-${Date.now()}.${format}`;
-
-    console.log(`Begin making video (format: ${format})`);
-
-    const zoompanFilter = zoompanFilterFromSettings(this.settings);
-
-    // Build codec arguments based on format
-    const codecArgs = this.getCodecArgs();
-
-    const result = await this.ffmpeg.exec([
-      "-i",
-      image.name,
-      "-vf",
-      zoompanFilter,
-      ...codecArgs,
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg video creation failed:\n${logs}`);
-    }
-
-    console.log(`Video made, saved under ${outFileName}`);
-
-    return { name: outFileName };
-  }
-
-  /**
-   * Get FFmpeg codec arguments based on output format and quality settings.
-   */
-  private getCodecArgs(): string[] {
-    const { outputFormat, videoQuality } = this.settings;
-
-    switch (outputFormat) {
-      case "webm":
-        // VP9 codec for WebM, CRF range 0-63 (we'll use the same value)
-        return [
-          "-c:v",
-          "libvpx-vp9",
-          "-crf",
-          String(videoQuality),
-          "-b:v",
-          "0",
-        ];
-      case "mp4":
-      default:
-        // H.264 codec for MP4
-        return ["-c:v", "libx264", "-crf", String(videoQuality)];
+    try {
+      for (let i = 0; i < files.length; i++) {
+        await this.loadImage(renderer, files[i], i, sigma, finalZoom);
+        for (let frame = 0; frame < frames; frame++) {
+          renderer.draw(zoomAtFrame(frame, this.settings.zoomRate));
+          // A keyframe at the start of each image keeps the cuts crisp
+          await writer.addFrame(renderer.canvas, frame === 0);
+          onProgress?.(i, i * frames + frame + 1, total);
+        }
+      }
+      return await writer.finish();
+    } finally {
+      writer.close();
+      renderer.dispose();
     }
   }
 
-  // Scale an image to the desired resolution
-  private async scaleImage(
-    file: FileReference,
-    horizontalSize: number,
-    verticalSize: number,
-  ): Promise<FileReference> {
-    const outFileName = `scale-output-${new Date().getTime().toString()}.png`;
-
-    const scaleFilter = buildScaleFilter(horizontalSize, verticalSize);
-    console.log(`Scaling image with setting: ${scaleFilter}`);
-
-    const result = await this.ffmpeg.exec([
-      "-i",
-      file.name,
-      "-vf",
-      scaleFilter,
-      "-c:a",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg scale failed:\n${logs}`);
+  private async loadImage(
+    renderer: FrameRenderer,
+    data: Uint8Array,
+    index: number,
+    sigma: number,
+    finalZoom: number,
+  ) {
+    let image: ImageBitmap;
+    try {
+      image = await createImageBitmap(new Blob([data as BlobPart]), {
+        imageOrientation: "from-image",
+        premultiplyAlpha: "none",
+      });
+    } catch {
+      throw new Error(
+        `Couldn't read image ${index + 1}. It may be damaged or in a format this browser can't open.`,
+      );
     }
-
-    return { name: outFileName };
-  }
-
-  // Scale an image to cover the target dimensions (no letterboxing)
-  private async scaleToCover(
-    file: FileReference,
-    targetWidth: number,
-    targetHeight: number,
-  ): Promise<FileReference> {
-    const outFileName = `cover-output-${new Date().getTime().toString()}.png`;
-
-    const scaleFilter = buildCoverScaleFilter(targetWidth, targetHeight);
-    console.log(`Cover scaling image with setting: ${scaleFilter}`);
-
-    const result = await this.ffmpeg.exec([
-      "-i",
-      file.name,
-      "-vf",
-      scaleFilter,
-      "-c:a",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg cover scale failed:\n${logs}`);
-    }
-
-    return { name: outFileName };
-  }
-
-  // overlay an image over another
-  private async overlayImage(
-    backgroundImage: FileReference,
-    foregroundImage: FileReference,
-  ): Promise<FileReference> {
-    const outFileName = `overlay-output-${new Date().getTime().toString()}.png`;
-
-    const overlayFilter = buildOverlayFilter(
-      this.settings.targetWidth,
-      this.settings.targetHeight,
+    const { targetWidth: width, targetHeight: height } = this.settings;
+    const background = makeBackground(image, width, height, sigma);
+    const source = prepareSource(
+      image,
+      width,
+      height,
+      finalZoom,
+      renderer.maxSize,
     );
-    const result = await this.ffmpeg.exec([
-      "-i",
-      backgroundImage.name,
-      "-i",
-      foregroundImage.name,
-      "-filter_complex",
-      overlayFilter,
-      "-map",
-      "[outv]",
-      "-c:a",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg overlay failed:\n${logs}`);
-    }
-
-    return { name: outFileName };
-  }
-
-  private async blurImage(file: FileReference): Promise<FileReference> {
-    const outFileName = `blur-output-${new Date().getTime().toString()}.png`;
-
-    const blurFilter = buildBlurFilter(this.settings.targetBlur);
-    const result = await this.ffmpeg.exec([
-      "-i",
-      file.name,
-      "-vf",
-      blurFilter,
-      "-c:a",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg blur failed:\n${logs}`);
-    }
-    return { name: outFileName };
-  }
-
-  /**
-   * Concatenate multiple videos into a single output video.
-   * Uses FFmpeg's concat demuxer for seamless joining.
-   */
-  public async concatenateVideos(videos: Uint8Array[]): Promise<Uint8Array> {
-    if (videos.length === 0) {
-      throw new Error("No videos to concatenate");
-    }
-
-    if (videos.length === 1) {
-      return videos[0];
-    }
-
-    // Write all video files to the virtual filesystem
-    const videoRefs: FileReference[] = [];
-    for (let i = 0; i < videos.length; i++) {
-      const fileName = `video-${Date.now()}-${i}.mp4`;
-      const ref = await this.fs.putFile(fileName, videos[i]);
-      videoRefs.push(ref);
-    }
-
-    const outFileName = `concat-output-${Date.now()}.mp4`;
-    const listFileName = `concat-list-${Date.now()}.txt`;
-
-    // Create concat list file content
-    const listContent = buildConcatList(videoRefs.map((v) => v.name));
-
-    // Write the list file to FFmpeg's virtual filesystem
-    const encoder = new TextEncoder();
-    await this.fs.putFile(listFileName, encoder.encode(listContent));
-
-    console.log(`Concatenating ${videos.length} videos`);
-
-    const result = await this.ffmpeg.exec([
-      "-f",
-      "concat",
-      "-safe",
-      "0",
-      "-i",
-      listFileName,
-      "-c",
-      "copy",
-      outFileName,
-    ]);
-
-    if (result !== 0) {
-      const logs = this.fs.getRecentLogs().join("\n");
-      throw new Error(`FFmpeg concatenation failed:\n${logs}`);
-    }
-
-    console.log(`Videos concatenated, saved under ${outFileName}`);
-
-    return this.fs.getFile(outFileName);
+    renderer.load(source, background);
+    image.close();
   }
 }

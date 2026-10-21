@@ -41,8 +41,7 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@ffmpeg/core": "^0.12.10",
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2"
+    "mp4-muxer": "^5.2.1",
+    "webm-muxer": "^5.1.4"
   }
 }

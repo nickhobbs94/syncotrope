@@ -48,7 +48,6 @@ export default {
         }),
         new CopyPlugin({
             patterns: [
-                { from: './node_modules/@ffmpeg', to: 'assets' },
                 { from: './public/static/favicon.ico', to: 'favicon.ico' },
             ]
         })
