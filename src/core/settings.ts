@@ -10,7 +10,7 @@ type UserSettings = {
   targetHeight: number;
   targetWidth: number;
   targetBlur: string;
-  zoomRate: number;
+  zoomSpeed: number; // percent the image grows by per second
   frameRate: number;
   imageDurationSeconds: number;
   outputFormat: OutputFormat;
@@ -23,9 +23,9 @@ const defaults: SyncotropeSettings = {
   targetHeight: 1080,
   targetWidth: 1920,
   targetBlur: "50:10",
-  zoomRate: 1.005,
+  zoomSpeed: 1,
   frameRate: 25,
-  imageDurationSeconds: 3,
+  imageDurationSeconds: 10,
   outputFormat: "mp4",
   videoQuality: 23,
   logging: [],
@@ -36,7 +36,7 @@ const elementMapping: Record<keyof UserSettings, string> = {
   targetHeight: "height",
   targetWidth: "width",
   targetBlur: "blur",
-  zoomRate: "zoomRate",
+  zoomSpeed: "zoomSpeed",
   frameRate: "frameRate",
   imageDurationSeconds: "imageDurationSeconds",
   outputFormat: "outputFormat",

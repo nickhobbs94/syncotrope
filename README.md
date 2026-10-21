@@ -2,6 +2,8 @@
 
 Images to video.
 
+Runs entirely in the browser (WebGL2 and WebCodecs): images are never uploaded. Needs a recent Chrome, Edge, Firefox or Safari.
+
 ## Prerequisites
 - Install [Bun](https://bun.sh/)
 

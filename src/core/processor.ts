@@ -5,7 +5,6 @@
 
 import { Syncotrope } from "./syncotrope";
 import { getSettings, OutputFormat } from "./settings";
-import { fetchFile } from "@ffmpeg/util";
 
 export type ProgressCallback = (progress: number, message: string) => void;
 
@@ -41,29 +40,22 @@ export async function processImages(
   const mimeType = getMimeType(settings.outputFormat);
   const filename = `output.${settings.outputFormat}`;
 
-  const videoDataList: Uint8Array[] = [];
   const totalFiles = files.length;
-
-  // Process each image into a video clip
-  for (let i = 0; i < totalFiles; i++) {
-    const file = files[i];
-    const progressBase = (i / totalFiles) * 90; // Reserve 10% for concatenation
-    onProgress?.(
-      progressBase + 1,
-      `Processing image ${i + 1} of ${totalFiles}`,
-    );
-
-    const imageData = await fetchFile(file);
-    const videoData = await syncotrope.processImage(imageData);
-    videoDataList.push(videoData);
-  }
-
-  // Concatenate all videos
-  onProgress?.(
-    92,
-    totalFiles > 1 ? "Concatenating videos..." : "Finalizing...",
+  const imageDataList = await Promise.all(
+    files.map(async (file) => new Uint8Array(await file.arrayBuffer())),
   );
-  const finalVideo = await syncotrope.concatenateVideos(videoDataList);
+
+  // All images go into one video, one clip after another
+  onProgress?.(1, `Processing image 1 of ${totalFiles}`);
+  const finalVideo = await syncotrope.processImages(
+    imageDataList,
+    (imageIndex, framesDone, framesTotal) => {
+      onProgress?.(
+        Math.max(1, (framesDone / framesTotal) * 99),
+        `Processing image ${imageIndex + 1} of ${totalFiles}`,
+      );
+    },
+  );
 
   onProgress?.(100, "Complete");
 

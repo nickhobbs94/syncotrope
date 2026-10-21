@@ -6,7 +6,6 @@
 import "../public/static/style.css";
 import { downloadBuffer } from "./util/buffer-download";
 import { Syncotrope } from "./core/syncotrope";
-import type { FFmpeg as FFmpegClass } from "@ffmpeg/ffmpeg";
 import { setupSettingsSidebar } from "./ui/settings-sidebar";
 import { setProgress } from "./ui/progress-bar";
 import { processImages } from "./core/processor";
@@ -23,11 +22,9 @@ import {
   clearSelectedFiles,
 } from "./ui/file-list";
 
-declare const FFmpegWASM: { FFmpeg: typeof FFmpegClass };
 declare const __GIT_HASH__: string;
-const { FFmpeg } = FFmpegWASM;
 
-const syncotrope = new Syncotrope(new FFmpeg());
+const syncotrope = new Syncotrope();
 
 async function handleStartProcessing() {
   const files = getSelectedFiles();

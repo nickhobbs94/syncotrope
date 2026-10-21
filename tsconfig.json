@@ -6,7 +6,8 @@
     "noImplicitReturns": true,
     "module": "es6",
     "moduleResolution": "node",
-    "target": "es2018"
+    "target": "es2018",
+    "types": ["node"]
   },
   "include": [
     "./src/**/*"
